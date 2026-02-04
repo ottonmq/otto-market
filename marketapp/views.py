@@ -228,3 +228,51 @@ def restaurar_backup(request):
             messages.error(request, f"ERROR EN CARGA: {e}")
             
     return redirect('dashboard') # O a la página que quieras
+
+
+
+
+
+
+
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from .models import Publicacion
+import json
+
+@csrf_exempt
+def bot_consulta(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            # Aceptamos 'texto' (web) o 'body' (estándar de algunos webhooks)
+            texto = data.get('texto', data.get('body', '')).lower().strip()
+            
+            if not texto:
+                return JsonResponse({'respuesta': "🤖 [SISTEMA]: Esperando comando..."})
+
+            # Lógica de búsqueda avanzada en Otto-Market
+            productos = Publicacion.objects.filter(
+                Q(titulo__icontains=texto) | Q(marca__icontains=texto),
+                vendido=False
+            )[:3] # Limitamos a 3 para no saturar el chat
+
+            if productos:
+                res = "⚡ **OTTO-MARKET // RESULTADOS** ⚡\n"
+                for p in productos:
+                    res += f"\n📦 {p.titulo.upper()}\n💰 PRECIO: ${p.precio}\n🔹 ESTADO: DISPONIBLE\n"
+                res += "\n[SISTEMA]: Datos extraídos con éxito."
+            else:
+                res = "⚠️ [ERROR]: No se encontraron suministros con ese nombre en la base de datos."
+                
+            return JsonResponse({'respuesta': res})
+        except Exception as e:
+            return JsonResponse({'respuesta': "💀 [CRITICAL_ERROR]: Fallo en la matriz de datos."}, status=400)
+    
+    return JsonResponse({'error': 'Método no permitido'}, status=405)
+
+
+
+def pagina_bot(request):
+    # Sin prefijos, directo al grano
+    return render(request, 'bot_consulta.html')

@@ -7,7 +7,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # --- 2. SEGURIDAD ---
 SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-wskp$fl8&frfe3=uk^ue+$5*(*sjpvmd#5f!2ac$k@y1g@r1q0')
-DEBUG = os.environ.get('DEBUG', 'False') == 'True'
+# En local forzamos DEBUG True si no hay variable de entorno para ver errores reales
+DEBUG = os.environ.get('DEBUG', 'True') == 'True'
 ALLOWED_HOSTS = ['*']
 
 # --- 3. APPS (SISTEMA + CLOUDINARY + OTTO-MARKET) ---
@@ -18,15 +19,17 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     
-    # Cloudinary debe ir ANTES de staticfiles
+    # Almacenamiento en la nube (Cloudinary)
     'cloudinary_storage',
     'django.contrib.staticfiles',
     'cloudinary',
     
+    # Módulos de visibilidad y red
     'django.contrib.sites',
+    'django.contrib.sitemaps',
     'whitenoise.runserver_nostatic',
     
-    # Tu App
+    # Tu App de mercado
     'marketapp',
     
     # Autenticación Cyberpunk (Allauth)
@@ -34,8 +37,6 @@ INSTALLED_APPS = [
     'allauth.account',
     'allauth.socialaccount',
     'allauth.socialaccount.providers.google', 
-    
-    'django.contrib.sitemaps'
 ]
 
 # --- 4. MIDDLEWARE (ORDEN CRÍTICO) ---
@@ -73,7 +74,7 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'market.wsgi.application'
 
-# --- 6. BASE DE DATOS ---
+# --- 6. BASE DE DATOS (HÍBRIDA: SQLITE LOCAL / POSTGRES WEB) ---
 DATABASES = {
     'default': dj_database_url.config(
         default=os.environ.get('DATABASE_URL', f'sqlite:///{BASE_DIR / "db.sqlite3"}'),
@@ -87,32 +88,31 @@ TIME_ZONE = 'UTC'
 USE_I18N = True
 USE_TZ = True
 
-# --- 8. STATIC & MEDIA (ALMACENAMIENTO PROFESIONAL) ---
+# --- 8. STATIC & MEDIA ---
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [BASE_DIR / 'static']
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
-# Configuración Maestra de Cloudinary para Fotos
+# Cloudinary Config
 CLOUDINARY_STORAGE = {
     'CLOUD_NAME': os.environ.get('CLOUDINARY_CLOUD_NAME'),
     'API_KEY': os.environ.get('CLOUDINARY_API_KEY'),
     'API_SECRET': os.environ.get('CLOUDINARY_API_SECRET'),
 }
 
-# Esto redirige todas las subidas de fotos a la nube
 DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
-
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
-# --- 9. CONFIGURACIÓN MAESTRA ALLAUTH ---
-SITE_ID = 1
+# --- 9. CONFIGURACIÓN ALLAUTH & SITES ---
+SITE_ID = 1  # INDISPENSABLE para sitemaps y allauth
 AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',
     'allauth.account.auth_backends.AuthenticationBackend',
 ]
 
+# Ajustes de Login solicitados
 SOCIALACCOUNT_LOGIN_ON_GET = True
 ACCOUNT_LOGIN_ON_GET = True
 SOCIALACCOUNT_AUTO_SIGNUP = True 
@@ -128,6 +128,8 @@ SOCIALACCOUNT_EMAIL_VERIFICATION = "none"
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
+
+# Parche para manejo de archivos en algunos entornos
 try:
     from django.core.files import locks
     locks.lock = lambda f, flags: True

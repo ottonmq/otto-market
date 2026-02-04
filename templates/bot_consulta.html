@@ -1,0 +1,137 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Otto-Bot Elite</title>
+    <style>
+        :root { --neon: #00f3ff; --bg: #050505; --card: #0d0d0f; --border: #1a1a1c; }
+        
+        /* FULL SCREEN REAL */
+        html, body { height: 100%; margin: 0; padding: 0; background: var(--bg); color: #fff; font-family: 'Segoe UI', sans-serif; overflow: hidden; }
+
+        .otto-frame {
+            width: 100vw; height: 100vh; background: var(--card);
+            display: flex; flex-direction: column; position: relative;
+        }
+
+        /* ESCÁNER NEÓN */
+        .scan-line {
+            position: absolute; top: 0; left: 0; width: 100%; height: 2px;
+            background: var(--neon); box-shadow: 0 0 15px var(--neon);
+            opacity: 0.1; animation: scan 4s infinite linear; z-index: 10;
+        }
+        @keyframes scan { 0% { top: 0; } 100% { top: 100%; } }
+
+        /* AREA DE CHAT CON AUTO-SCROLL */
+        #log { 
+            flex: 1; overflow-y: auto; padding: 20px; 
+            display: flex; flex-direction: column; gap: 15px;
+            scroll-behavior: smooth; padding-bottom: 100px; 
+        }
+
+        /* BURBUJAS */
+        .bot-msg { background: #161618; border: 1px solid #222; border-radius: 25px; padding: 20px; border-bottom-left-radius: 2px; animation: slide 0.3s ease; align-self: flex-start; max-width: 85%; }
+        .user-msg { background: #222; color: var(--neon); align-self: flex-end; padding: 15px 20px; border-radius: 25px; border-bottom-right-radius: 2px; max-width: 80%; }
+        
+        @keyframes slide { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* GRILLA DE BOTONES */
+        .menu-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px; }
+        .btn-core {
+            background: #000; color: #fff; border: 1px solid #333; padding: 15px 5px;
+            border-radius: 15px; cursor: pointer; font-size: 11px; font-weight: bold;
+            transition: 0.3s; text-transform: uppercase; outline: none;
+        }
+        .btn-core:hover { border-color: var(--neon); color: var(--neon); }
+        .btn-wa { grid-column: span 2; border-radius: 50px; border-color: #25d366; color: #25d366; margin-top: 10px; }
+
+        /* INPUT FIJO ABAJO */
+        .input-area {
+            position: fixed; bottom: 0; width: 100%; background: #0d0d0f;
+            padding: 20px; box-sizing: border-box; border-top: 1px solid #1a1a1c;
+        }
+        input {
+            width: 100%; background: #111; border: 1px solid #333; padding: 18px;
+            border-radius: 50px; color: var(--neon); outline: none; font-size: 16px; text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+<div class="otto-frame">
+    <div class="scan-line"></div>
+    <div id="log">
+        </div>
+    <div class="input-area">
+        <input type="text" id="in" placeholder="ESCRIBE 'HOLA'..." autofocus autocomplete="off">
+    </div>
+</div>
+
+<script>
+    const input = document.getElementById('in');
+    const log = document.getElementById('log');
+    let botActive = false;
+
+    const saludos = ["hola", "buenas", "inicio", "menu", "hey"];
+
+    function scroll() { log.scrollTop = log.scrollHeight; }
+
+    input.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter' && input.value.trim() !== "") {
+            const val = input.value.trim();
+            renderMsg(val, 'user');
+            
+            if (saludos.includes(val.toLowerCase()) || !botActive) {
+                setTimeout(renderMenu, 500);
+                botActive = true;
+            } else {
+                consultar(val);
+            }
+            input.value = '';
+        }
+    });
+
+    function renderMsg(t, type) {
+        const div = document.createElement('div');
+        div.className = type === 'user' ? 'user-msg' : 'bot-msg';
+        div.innerHTML = t;
+        log.appendChild(div);
+        scroll();
+    }
+
+    function renderMenu() {
+        const menu = `
+            <b>OTTO-BOT ACTIVE</b><br>Selecciona una categoría táctica:
+            <div class="menu-grid">
+                <button class="btn-core" onclick="exe('Vehículos')">🚗 Vehículos</button>
+                <button class="btn-core" onclick="exe('Tecnología')">💻 Tecnología</button>
+                <button class="btn-core" onclick="exe('Hogar')">🏠 Hogar</button>
+                <button class="btn-core" onclick="exe('Servicios')">🛠️ Servicios</button>
+                <button class="btn-core" onclick="exe('Otros')">📦 Otros</button>
+                <button class="btn-core" onclick="exe('Soporte')">🛡️ Soporte</button>
+                <button class="btn-core btn-wa" onclick="window.open('https://wa.me/50376511585')">💬 ASESOR WHATSAPP</button>
+            </div>`;
+        renderMsg(menu, 'bot');
+    }
+
+    function exe(t) {
+        renderMsg(t, 'user');
+        consultar(t);
+    }
+
+    function consultar(t) {
+        fetch('/bot/consultar/', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token }}'},
+            body: JSON.stringify({ texto: t })
+        })
+        .then(r => r.json())
+        .then(data => {
+            renderMsg(data.respuesta, 'bot');
+        });
+    }
+</script>
+</body>
+</html>

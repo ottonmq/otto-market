@@ -390,6 +390,71 @@
 
 
 
+
+
+
+
+<div class="otto-access-container">
+    <a href="{% url 'pagina_bot' %}" class="btn-neon-tech">
+        <span class="scanner-bar"></span>
+        <span class="btn-text">CHAT_BOT</span>
+    </a>
+</div>
+
+<style>
+    .otto-access-container { margin: 25px 0; text-align: center; }
+
+    .btn-neon-tech {
+        position: relative;
+        display: inline-block;
+        padding: 15px 40px;
+        background: #0d0d0f;       /* Negro base */
+        color: #00f3ff;            /* Color Neon de referencia */
+        text-decoration: none;
+        font-family: 'Segoe UI', sans-serif;
+        font-weight: bold;
+        border: 1px solid #1a1a1c;
+        border-radius: 50px;       /* CURVA SEGÚN LA PÁGINA */
+        overflow: hidden;          /* PARA EL BARRIDO */
+        transition: 0.4s;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.8);
+    }
+
+    /* EFECTO DE BARRIDO (SCANNER) */
+    .scanner-bar {
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(
+            90deg, 
+            transparent, 
+            rgba(0, 243, 255, 0.2), 
+            transparent
+        );
+        animation: scan-loop 3s infinite linear;
+    }
+
+    @keyframes scan-loop {
+        0% { left: -100%; }
+        100% { left: 100%; }
+    }
+
+    .btn-neon-tech:hover {
+        background: #151517;
+        border-color: #00f3ff;
+        box-shadow: 0 0 20px rgba(0, 243, 255, 0.3);
+        color: #fff;
+    }
+
+    .btn-text {
+        position: relative;
+        z-index: 1; /* Por encima del barrido */
+        letter-spacing: 2px;
+    }
+</style>
+
 {% endblock %}
 
 

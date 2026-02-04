@@ -26,4 +26,9 @@ urlpatterns = [
     
     path('backup/descargar/', views.descargar_backup, name='backup_sistema'),
     path('backup/restaurar/', views.restaurar_backup, name='restaurar_backup'), # LA NUEVA
+    
+    path('bot/consultar/', views.bot_consulta, name='bot_consulta'),
+    
+    path('chatbot/', views.pagina_bot, name='pagina_bot'),
+
 ]

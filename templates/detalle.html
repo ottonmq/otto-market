@@ -103,36 +103,32 @@
 
 
                 <div class="d-grid">
-                    <a href="https://wa.me/{{ anuncio.telefono|default:anuncio.vendedor.perfil.telefono|cut:' ' }}" 
-                       target="_blank" 
-                       class="action-button" 
-                       onclick="showOttoNotification('CONTACTANDO VENDEDOR...', 'info')"
-                       style="
-                        display: block; 
-                        width: 100%; 
-                        background: #; 
-                        color: green; 
-                        padding: 18px 0; 
-                        text-align: center; 
-                        text-decoration: none; 
-                        font-weight: 900; 
-                        font-family: monospace;
-                        border: none; 
-                        border-radius: 8px; 
-                        box-shadow: 0 4px 0 #008f25, 0 0 20px rgba(0, 255, 65, 0.4);
-                        text-transform: uppercase;
-                        letter-spacing: 2px;
-                        cursor: pointer;
-                        -webkit-tap-highlight-color: transparent;
-                       ">
-                         CONTACTAR_VENDEDOR 
-              
-                  </a>
-                </div>
-            </div>
-        </div>
-    </div>
+    <a href="https://wa.me/{{ anuncio.telefono|default:anuncio.vendedor.perfil.telefono|cut:' ' }}?text=Saludos%20Otto-market!%20Me%20interesa%20el%20producto:%20{{ anuncio.titulo }}" 
+       target="_blank" 
+       class="action-button" 
+       onclick="showOttoNotification('CONTACTANDO VENDEDOR...', 'info')"
+       style="
+        display: block; 
+        width: 100%; 
+        background: #0a0a0a; 
+        color: #00ff41; 
+        padding: 18px 0; 
+        text-align: center; 
+        text-decoration: none; 
+        font-weight: 900; 
+        font-family: monospace;
+        border: 1px solid #00ff41; 
+        border-radius: 8px; 
+        box-shadow: 0 4px 0 #008f25, 0 0 20px rgba(0, 255, 65, 0.4);
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        cursor: pointer;
+        -webkit-tap-highlight-color: transparent;
+       ">
+         CONTACTAR_VENDEDOR 
+    </a>
 </div>
+
 
 <style>
     @keyframes scan { 0% { top: -100%; } 100% { top: 100%; } }
