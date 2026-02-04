@@ -1,0 +1,178 @@
+<div class="container mt-4">
+    <div class="profile-header-card" style="background: #0a0a0a; border: 1px solid #333; padding: 25px; display: flex; align-items: center; gap: 20px;">
+        <div class="avatar-container" style="width: 90px; height: 90px; border: 2px solid #333; padding: 1px;">
+            {% if user.perfil.foto_perfil %}
+                <img src="{{ user.perfil.foto_perfil.url }}" style="width: 100%; height: 100%; object-fit: cover; filter: grayscale(50%);">
+            {% else %}
+                <div style="width: 100%; height: 100%; background: #1a1a1a; display: flex; align-items: center; justify-content: center; color: #ff0000; font-family: monospace; font-size: 30px; font-weight: bold;">
+                    {{ user.username|slice:":1"|upper }}
+                </div>
+            {% endif %}
+        </div>
+        
+        <div class="info-section">
+            <h2 style="color: #999; margin: 0; font-size: 22px; font-family: monospace; letter-spacing: 2px;">{{ user.username|upper }}</h2>
+            <div style="color: #999; font-size: 12px; margin-top: 5px; font-family: monospace;">
+                ID_AUTH: {{ user.id }}<br>
+
+                Nombre: {{ user.perfil.nombre}}<br>
+                Cel: {{ user.perfil.telefono|default:"-- SIN REGISTRO --" }}<br>
+                Mail: {{ user.perfil.correo|default:"-- NO DEFINIDO --" }}<br>
+                Direcc: {{ user.perfil.direccion|default:"-- NO DEFINIDO --" }}
+            </div>
+        </div>
+    </div>
+    
+    
+    
+    
+    
+    
+    {% extends "base.html" %}
+{% block content %}
+<div class="container py-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h2 class="cyber-title">> DASHBOARD_SISTEMA: {{ user.username|upper }}</h2>
+            <small class="text-info" style="letter-spacing: 2px;">ID_RED: {{ user.email|default:"ANONYMOUS_OPS" }}</small>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-md-3 mb-3">
+            <div class="cyber-card neon-blue">
+                <small class="label">UNIDADES_ACTIVAS</small>
+                <h2 class="value">{{ stats.unidades }}</h2>
+                <small class="sub-label">TOTAL_REGISTROS</small>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="cyber-card neon-green">
+                <small class="label">INGRESOS_TOTALES</small>
+                <h2 class="value">${{ stats.ingresos|default:"0" }}</h2>
+                <small class="trend-up">STABLE_REVENUE</small>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="cyber-card neon-yellow">
+                <small class="label">VISTAS_TOTALES</small>
+                <h2 class="value">{{ stats.vistas_totales }}</h2>
+                <small class="trend-warning">SCAN_DATA_OK</small>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="cyber-card neon-red">
+                <small class="label">UNIDADES_VENDIDAS</small>
+                <h2 class="value">{{ stats.vendidos }}</h2>
+                <small class="sub-label">CONVERTED_DEALS</small>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-8 mb-4">
+            <div class="cyber-card main-chart-box">
+                <h6 class="label mb-4">RENDIMIENTO_SEMANAL (7D_SCAN)</h6>
+                <div style="height: 300px;"><canvas id="graficoVentas"></canvas></div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="cyber-card activity-box">
+                <h6 class="label mb-3">LOG_DE_ACTIVIDAD_RECIENTE</h6>
+                <ul class="activity-list">
+                    {% for pub in stats.recientes %}
+                    <li>
+                        <span class="tag {% if pub.vendido %}red{% else %}green{% endif %}">
+                            {% if pub.vendido %}VENDIDO{% else %}ACTIVO{% endif %}
+                        </span> 
+                        {{ pub.titulo|upper|truncatechars:18 }}
+                    </li>
+                    {% empty %}
+                    <li><span class="tag yellow">EMPTY</span> SIN ACTIVIDAD DETECTADA</li>
+                    {% endfor %}
+                    <hr style="border-color: #333;">
+                    <li><span class="tag blue">SYS</span> STATUS: {{ user.is_active|yesno:"ONLINE,OFFLINE" }}</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    :root { --dark-bg: #0a0a0c; --card-bg: #121214; --neon-blue: #00f3ff; --neon-green: #39ff14; --neon-yellow: #fff01f; --neon-red: #ff0055; }
+    body { background-color: var(--dark-bg) !important; color: #e0e0e0; font-family: 'Courier New', monospace; }
+    .cyber-title { color: var(--neon-blue); font-size: 1.2rem; text-shadow: 0 0 10px rgba(0, 243, 255, 0.3); font-weight: 900; }
+    .cyber-card { background: var(--card-bg); border: 1px solid #222; padding: 20px; position: relative; clip-path: polygon(0 0, 100% 0, 100% 85%, 92% 100%, 0 100%); }
+    .neon-blue { border-left: 4px solid var(--neon-blue); box-shadow: inset 5px 0 15px -5px rgba(0, 243, 255, 0.2); }
+    .neon-green { border-left: 4px solid var(--neon-green); box-shadow: inset 5px 0 15px -5px rgba(57, 255, 20, 0.2); }
+    .neon-yellow { border-left: 4px solid var(--neon-yellow); box-shadow: inset 5px 0 15px -5px rgba(255, 240, 31, 0.2); }
+    .neon-red { border-left: 4px solid var(--neon-red); box-shadow: inset 5px 0 15px -5px rgba(255, 0, 85, 0.2); }
+    .label { font-size: 10px; color: #888; letter-spacing: 1px; display: block; }
+    .value { font-size: 1.8rem; font-weight: 900; margin: 5px 0; color: #fff; }
+    .sub-label, .trend-up, .trend-warning { font-size: 11px; }
+    .trend-up { color: var(--neon-green); } .trend-warning { color: var(--neon-yellow); } .sub-label { color: #555; }
+    .activity-list { list-style: none; padding: 0; font-size: 12px; }
+    .activity-list li { margin-bottom: 12px; border-bottom: 1px solid #1a1a1a; padding-bottom: 5px; }
+    .tag { padding: 2px 6px; font-size: 9px; font-weight: bold; margin-right: 8px; border: 1px solid; border-radius: 2px; }
+    .tag.green { color: var(--neon-green); border-color: var(--neon-green); }
+    .tag.blue { color: var(--neon-blue); border-color: var(--neon-blue); }
+    .tag.yellow { color: var(--neon-yellow); border-color: var(--neon-yellow); }
+    .tag.red { color: var(--neon-red); border-color: var(--neon-red); }
+</style>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    const ctx = document.getElementById('graficoVentas').getContext('2d');
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: ['LUN', 'MAR', 'MIE', 'JUE', 'VIE', 'SAB', 'DOM'],
+            datasets: [{
+                label: 'VISTAS',
+                data: [65, 59, 80, 81, 56, 55, {{ stats.vistas_totales|default:0 }}],
+                borderColor: '#00f3ff', backgroundColor: 'rgba(0, 243, 255, 0.05)',
+                fill: true, tension: 0.4, borderWidth: 2, pointRadius: 3, pointBackgroundColor: '#00f3ff'
+            }]
+        },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+                y: { grid: { color: '#222' }, ticks: { color: '#555' } },
+                x: { grid: { display: false }, ticks: { color: '#555' } }
+            }
+        }
+    });
+</script>
+
+    <h3 class="text-info">[⚙️] GESTIÓN DE NÚCLEO</h3>
+    
+    <a href="{% url 'backup_sistema' %}" class="btn-robot mb-3" onclick="showOttoNotification('EXTRAYENDO...', 'BACKUP')">
+        DESCARGAR BACKUP [💾]
+    </a>
+
+    <hr class="border-secondary">
+
+    <form action="{% url 'restaurar_backup' %}" method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <label class="text-white d-block mb-2">REINYECTAR DATOS:</label>
+        <input type="file" name="backup_file" class="form-control bg-dark text-info border-info mb-2">
+        <button type="submit" class="btn-robot w-100" onclick="showOttoNotification('INYECTANDO...', 'SISTEMA')">
+            RESTAURAR SISTEMA [⚡]
+        </button>
+  </form>
+
+
+{% endblock %}
+
+
+
+
+
+
+
+<a href="{% url 'detalle' anuncio.id %}" 
+   class="action-button" 
+   onclick="showOttoNotification('ACCEDIENDO_A_DATOS_RESERVADOS...', 'info')">
+    DETALLES 
+</a>

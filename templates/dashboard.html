@@ -1,132 +1,254 @@
 {% extends "base.html" %}
-
 {% block content %}
-<div class="container mt-4 otto-dashboard">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h3 class="cyber-title">PANEL_DE_CONTROL // VENTAS</h3>
-        <span class="badge-status">SISTEMA_OPERATIVO</span>
+<div class="container py-4">
+    <div class="row mb-4 animate-flicker">
+        <div class="col-12">
+            <h2 class="cyber-title text-glitch" data-text="DASHBOARD_SISTEMA: {{ user.username|upper }}">> DASHBOARD_SISTEMA: {{ user.username|upper }}</h2>
+            <div class="scanner-bar"></div>
+            <small class="text-neon-cyan" style="letter-spacing: 4px;">ID_RED: {{ user.email|default:"ANONYMOUS_OPS" }} // STATUS: ONLINE</small>
+        </div>
     </div>
-    
+
     <div class="row mb-4">
         <div class="col-md-3 mb-3">
-            <div class="cyber-card neon-blue">
-                <small class="label">VISTAS_TOTALES</small>
-                <h2 class="value">1,254</h2>
-                <small class="trend-up">↑ 12% RATE_UP</small>
+            <div class="cyber-card-v2 blue-flow">
+                <div class="card-inner">
+                    <small class="label-neon">UNIDADES_ACTIVAS</small>
+                    <h2 class="value-neon">{{ stats.unidades }}</h2>
+                    <small class="sub-label">TOTAL_REGISTROS</small>
+                </div>
             </div>
         </div>
         <div class="col-md-3 mb-3">
-            <div class="cyber-card neon-green">
-                <small class="label">INGRESOS_ESTIMADOS</small>
-                <h2 class="value">$42,800</h2>
-                <small class="sub-label">3 PROPS_ACTIVE</small>
+            <div class="cyber-card-v2 green-flow">
+                <div class="card-inner">
+                    <small class="label-neon">INGRESOS_TOTALES</small>
+                    <h2 class="value-neon">${{ stats.ingresos|default:"0" }}</h2>
+                    <small class="trend-up">STABLE_REVENUE</small>
+                </div>
             </div>
         </div>
         <div class="col-md-3 mb-3">
-            <div class="cyber-card neon-yellow">
-                <small class="label">MENSAJES_INBOX</small>
-                <h2 class="value">18</h2>
-                <small class="trend-warning">5 UNREAD_MSG</small>
+            <div class="cyber-card-v2 yellow-flow">
+                <div class="card-inner">
+                    <small class="label-neon">VISTAS_TOTALES</small>
+                    <h2 class="value-neon">{{ stats.vistas_totales }}</h2>
+                    <small class="trend-warning">SCAN_DATA_OK</small>
+                </div>
             </div>
         </div>
         <div class="col-md-3 mb-3">
-            <div class="cyber-card neon-red">
-                <small class="label">ANUNCIOS_VENCIDOS</small>
-                <h2 class="value">0</h2>
-                <small class="sub-label">CLEAN_STATUS</small>
+            <div class="cyber-card-v2 red-flow">
+                <div class="card-inner">
+                    <small class="label-neon">UNIDADES_VENDIDAS</small>
+                    <h2 class="value-neon">{{ stats.vendidos }}</h2>
+                    <small class="sub-label">CONVERTED_DEALS</small>
+                </div>
             </div>
         </div>
     </div>
 
     <div class="row">
         <div class="col-md-8 mb-4">
-            <div class="cyber-card main-chart-box">
-                <h6 class="label mb-4">RENDIMIENTO_SEMANAL (7D_SCAN)</h6>
-                <div style="height: 300px;">
-                    <canvas id="graficoVentas"></canvas>
+            <div class="cyber-card-v2 blue-flow main-chart-box">
+                <div class="card-inner">
+                    <h6 class="label-neon mb-4">> RENDIMIENTO_SEMANAL (7D_SCAN)</h6>
+                    <div style="height: 300px;"><canvas id="graficoVentas"></canvas></div>
                 </div>
             </div>
         </div>
         <div class="col-md-4 mb-4">
-            <div class="cyber-card activity-box">
-                <h6 class="label mb-3">LOG_DE_ACTIVIDAD</h6>
-                <ul class="activity-list">
-                    <li><span class="tag green">VENDIDO</span> Hilux 2022 // 2h</li>
-                    <li><span class="tag blue">MSG</span> Consulta Casa // 4h</li>
-                    <li><span class="tag yellow">MILE</span> 500 Vistas Alcanzadas</li>
-                </ul>
+            <div class="cyber-card-v2 purple-flow activity-box">
+                <div class="card-inner">
+                    <h6 class="label-neon mb-3">> LOG_DE_ACTIVIDAD_RECIENTE</h6>
+                    <ul class="activity-list">
+                        {% for pub in stats.recientes %}
+                        <li class="log-item">
+                            <span class="tag-cyber {% if pub.vendido %}red{% else %}green{% endif %}">
+                                {% if pub.vendido %}VENDIDO{% else %}ACTIVO{% endif %}
+                            </span> 
+                            <span class="text-white">{{ pub.titulo|upper|truncatechars:15 }}</span>
+                        </li>
+                        {% empty %}
+                        <li class="log-item"><span class="tag-cyber yellow">EMPTY</span> SIN ACTIVIDAD</li>
+                        {% endfor %}
+                    </ul>
+                    <div class="sys-status">
+                        <span class="blink-dot"></span> STATUS: {{ user.is_active|yesno:"ESTABLE,ERROR" }}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% if user.is_superuser %}
+    <div class="mgmt-section mt-5">
+        <h3 class="cyber-title-sm text-neon-cyan">[⚙️] GESTIÓN DE NÚCLEO</h3>
+        <div class="row">
+            <div class="col-md-6">
+                <a href="{% url 'backup_sistema' %}" class="btn-cyber-neon w-100 mb-3 text-center">
+                    DESCARGAR_BACKUP [💾]
+                </a>
+            </div>
+            <div class="col-md-6">
+                <form action="{% url 'restaurar_backup' %}" method="post" enctype="multipart/form-data" class="cyber-form">
+                    {% csrf_token %}
+                    <div class="input-group">
+                        <input type="file" name="backup_file" class="cyber-input">
+                        <button type="submit" class="btn-cyber-neon-alt">REINYECTAR_DATOS [⚡]</button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
 </div>
-
+{% endif %}
 <style>
+    /* VARIABLES DE DIOS */
     :root {
-        --dark-bg: #0a0a0c;
-        --card-bg: #121214;
-        --neon-blue: #00f3ff;
-        --neon-green: #39ff14;
-        --neon-yellow: #fff01f;
-        --neon-red: #ff0055;
+        --d-bg: #050505;
+        --d-card: #0a0a0c;
+        --n-blue: #00f3ff;
+        --n-green: #39ff14;
+        --n-yellow: #fff01f;
+        --n-red: #ff0055;
+        --n-purple: #bc13fe;
     }
 
-    body { background-color: var(--dark-bg) !important; color: #e0e0e0; }
-
-    .cyber-title {
-        color: var(--neon-blue);
-        font-family: 'Orbitron', sans-serif;
-        font-size: 1.2rem;
-        text-shadow: 0 0 10px rgba(0, 243, 255, 0.3);
+    body { 
+        background-color: var(--d-bg) !important; 
+        color: #e0e0e0; 
+        font-family: 'Orbitron', sans-serif; 
+        overflow-x: hidden;
     }
 
-    .cyber-card {
-        background: var(--card-bg);
-        border: 1px solid #222;
-        padding: 20px;
+    /* CARD V2 - NEON FLOW EFFECT */
+    .cyber-card-v2 {
         position: relative;
+        padding: 1px; /* Espacio para el borde animado */
+        background: rgba(255, 255, 255, 0.05);
+        clip-path: polygon(10% 0, 100% 0, 100% 80%, 90% 100%, 0 100%, 0 20%);
         overflow: hidden;
-        clip-path: polygon(0 0, 100% 0, 100% 85%, 92% 100%, 0 100%);
     }
 
-    /* Variantes de Color Neon */
-    .neon-blue { border-left: 4px solid var(--neon-blue); box-shadow: inset 5px 0 15px -5px rgba(0, 243, 255, 0.2); }
-    .neon-green { border-left: 4px solid var(--neon-green); box-shadow: inset 5px 0 15px -5px rgba(57, 255, 20, 0.2); }
-    .neon-yellow { border-left: 4px solid var(--neon-yellow); box-shadow: inset 5px 0 15px -5px rgba(255, 240, 31, 0.2); }
-    .neon-red { border-left: 4px solid var(--neon-red); box-shadow: inset 5px 0 15px -5px rgba(255, 0, 85, 0.2); }
+    .card-inner {
+        background: var(--d-card);
+        padding: 20px;
+        clip-path: polygon(10% 0, 100% 0, 100% 80%, 90% 100%, 0 100%, 0 20%);
+        height: 100%;
+    }
 
-    .label { font-family: 'Monospace'; font-size: 10px; color: #888; letter-spacing: 1px; display: block; }
-    .value { font-family: 'Orbitron', sans-serif; font-weight: 900; margin: 5px 0; color: #fff; }
-    
-    .trend-up { color: var(--neon-green); font-size: 11px; }
-    .trend-warning { color: var(--neon-yellow); font-size: 11px; }
-    .sub-label { color: #555; font-size: 11px; }
+    /* BORDER ANIMATION FLOW */
+    .cyber-card-v2::before {
+        content: '';
+        position: absolute;
+        top: -50%; left: -50%;
+        width: 200%; height: 200%;
+        background: conic-gradient(transparent, transparent, transparent, var(--n-blue));
+        animation: rotate-neon 4s linear infinite;
+    }
 
-    .activity-list { list-style: none; padding: 0; font-size: 12px; font-family: 'Monospace'; }
-    .activity-list li { margin-bottom: 15px; color: #bbb; }
-    .tag { padding: 2px 6px; border-radius: 3px; font-size: 9px; font-weight: bold; margin-right: 8px; }
-    .tag.green { background: rgba(57, 255, 20, 0.1); color: var(--neon-green); border: 1px solid var(--neon-green); }
-    .tag.blue { background: rgba(0, 243, 255, 0.1); color: var(--neon-blue); border: 1px solid var(--neon-blue); }
-    .tag.yellow { background: rgba(255, 240, 31, 0.1); color: var(--neon-yellow); border: 1px solid var(--neon-yellow); }
+    .blue-flow::before { background: conic-gradient(transparent, transparent, transparent, var(--n-blue)); }
+    .green-flow::before { background: conic-gradient(transparent, transparent, transparent, var(--n-green)); }
+    .yellow-flow::before { background: conic-gradient(transparent, transparent, transparent, var(--n-yellow)); }
+    .red-flow::before { background: conic-gradient(transparent, transparent, transparent, var(--n-red)); }
+    .purple-flow::before { background: conic-gradient(transparent, transparent, transparent, var(--n-purple)); }
+
+    @keyframes rotate-neon {
+        100% { transform: rotate(360deg); }
+    }
+
+    /* TITULOS Y TEXTOS */
+    .cyber-title { font-weight: 900; color: var(--n-blue); text-shadow: 0 0 15px var(--n-blue); margin-bottom: 0; }
+    .label-neon { font-size: 10px; color: #aaa; text-transform: uppercase; letter-spacing: 2px; }
+    .value-neon { font-size: 2.2rem; color: #fff; text-shadow: 0 0 10px rgba(255,255,255,0.2); margin: 10px 0; }
+
+    /* SCANNER BAR */
+    .scanner-bar {
+        height: 2px;
+        background: var(--n-blue);
+        width: 100%;
+        margin: 10px 0;
+        box-shadow: 0 0 15px var(--n-blue);
+        animation: scan-move 3s ease-in-out infinite;
+    }
+
+    @keyframes scan-move {
+        0%, 100% { transform: scaleX(0.1); opacity: 0.2; }
+        50% { transform: scaleX(1); opacity: 1; }
+    }
+
+    /* BUTTONS PREMIUM */
+    .btn-cyber-neon {
+        display: inline-block;
+        padding: 10px 20px;
+        border: 1px solid var(--n-blue);
+        color: var(--n-blue);
+        text-decoration: none;
+        background: rgba(0, 243, 255, 0.05);
+        transition: 0.3s;
+        text-transform: uppercase;
+        font-weight: bold;
+        clip-path: polygon(0 0, 90% 0, 100% 30%, 100% 100%, 10% 100%, 0 70%);
+    }
+
+    .btn-cyber-neon:hover {
+        background: var(--n-blue);
+        color: #000;
+        box-shadow: 0 0 20px var(--n-blue);
+    }
+
+    .log-item {
+        list-style: none;
+        padding: 8px 0;
+        border-bottom: 1px solid #1a1a1a;
+        font-size: 12px;
+    }
+
+    .tag-cyber {
+        padding: 2px 8px;
+        font-size: 10px;
+        border-radius: 0px;
+        margin-right: 10px;
+        border: 1px solid;
+    }
+    .tag-cyber.green { color: var(--n-green); border-color: var(--n-green); box-shadow: 0 0 5px var(--n-green); }
+    .tag-cyber.red { color: var(--n-red); border-color: var(--n-red); box-shadow: 0 0 5px var(--n-red); }
+
+    .blink-dot {
+        height: 8px; width: 8px; background: var(--n-green); border-radius: 50%; display: inline-block;
+        animation: blink 1s infinite;
+    }
+
+    @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.2; } }
+
+    /* INPUTS */
+    .cyber-input {
+        background: #000; border: 1px solid #333; color: var(--n-blue); padding: 10px; font-size: 12px;
+    }
 </style>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
     const ctx = document.getElementById('graficoVentas').getContext('2d');
+    const gradient = ctx.createLinearGradient(0, 0, 0, 400);
+    gradient.addColorStop(0, 'rgba(0, 243, 255, 0.4)');
+    gradient.addColorStop(1, 'rgba(0, 243, 255, 0)');
+
     new Chart(ctx, {
         type: 'line',
         data: {
             labels: ['LUN', 'MAR', 'MIE', 'JUE', 'VIE', 'SAB', 'DOM'],
             datasets: [{
-                label: 'VISTAS',
-                data: [120, 190, 300, 250, 400, 550, 620],
+                label: 'DATA_STREAM',
+                data: [65, 59, 80, 81, 56, 55, {{ stats.vistas_totales|default:40 }}],
                 borderColor: '#00f3ff',
-                backgroundColor: 'rgba(0, 243, 255, 0.05)',
+                backgroundColor: gradient,
                 fill: true,
-                tension: 0.4,
-                borderWidth: 2,
-                pointBackgroundColor: '#00f3ff',
-                pointRadius: 0,
-                pointHoverRadius: 6
+                borderWidth: 3,
+                pointBackgroundColor: '#fff',
+                pointBorderColor: '#00f3ff',
+                pointHoverRadius: 7,
+                tension: 0.4
             }]
         },
         options: {
@@ -134,10 +256,11 @@
             maintainAspectRatio: false,
             plugins: { legend: { display: false } },
             scales: {
-                y: { grid: { color: '#222' }, ticks: { color: '#555', font: { family: 'Monospace' } } },
-                x: { grid: { display: false }, ticks: { color: '#555', font: { family: 'Monospace' } } }
+                y: { grid: { color: '#1a1a1a' }, ticks: { color: '#00f3ff' } },
+                x: { grid: { color: '#1a1a1a' }, ticks: { color: '#555' } }
             }
         }
     });
 </script>
+
 {% endblock %}

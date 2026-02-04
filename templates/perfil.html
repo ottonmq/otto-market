@@ -1,83 +1,351 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="container mt-4">
-    <div class="profile-header-card" style="background: #111; border: 1px solid #2e89ff; padding: 20px; border-radius: 15px; display: flex; align-items: center; gap: 20px;">
-        <div class="avatar-scanner" style="position: relative; width: 80px; height: 80px;">
-            <div class="rotating-light" style="position: absolute; width: 100%; height: 100%; border: 2px solid #2e89ff; border-radius: 50%; border-top-color: transparent; animation: spin 2s linear infinite;"></div>
-            {% if user.socialaccount_set.all %}
-                <img src="{{ user.socialaccount_set.all.0.get_avatar_url }}" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;">
-            {% else %}
-                <div style="width: 100%; height: 100%; background: #222; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #2e89ff; font-weight: bold; font-size: 24px;">
-                    {{ user.username|slice:":1"|upper }}
-                </div>
-            {% endif %}
-        </div>
+{% if user.is_authenticated %}
+<div class="container mt-4 mb-4 text-end">
+    <div style="display: inline-flex; gap: 10px; background: #000; padding: 5px; border: 1px solid #222;">
         
-        <div class="info-section">
-            <h2 style="color: #fff; margin: 0; font-size: 20px;">{{ user.username|upper }}</h2>
-            <p style="color: #2e89ff; font-size: 10px; margin: 0;">SISTEMA_ACTIVO // STATUS: ONLINE</p>
-        </div>
-    </div>
+        
+        <style>
+    .btn-tech-sweep {
+        position: relative;
+        display: inline-block;
+        padding: 10px 25px;
+        background: rgba(0, 242, 255, 0.05); /* Fondo sutilmente encendido */
+        color: #00f2ff;
+        border: 1px solid #00f2ff; /* Borde cian continuo */
+        font-family: 'Courier New', monospace;
+        font-size: 13px;
+        font-weight: bold;
+        text-decoration: none;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        overflow: hidden;
+        transition: 0.4s;
+        /* Resplandor constante (Botón encendido) */
+        box-shadow: inset 0 0 10px rgba(0, 242, 255, 0.2), 0 0 5px rgba(0, 242, 255, 0.3);
+    }
 
-    <h4 class="mt-5 mb-4" style="color: #2e89ff; font-size: 14px; letter-spacing: 2px;">MIS_PUBLICACIONES_EN_RADAR</h4>
-    
-    <div class="row g-3">
-        {% for v in mis_anuncios %}
-        <div class="col-12 col-md-6">
-            <div class="card-item-horizontal" style="background: #16181a; border: 1px solid #2d3136; border-radius: 10px; display: flex; overflow: hidden; height: 100px;">
-                <div class="img-mini" style="width: 100px; background: #000;">
-                    {% if v.foto %} 
-                        <img src="{{ v.foto.url }}" style="width: 100%; height: 100%; object-fit: cover;"> 
-                    {% else %}
-                        <div style="color: #444; font-size: 9px; text-align: center; padding-top: 40px;">NO_IMAGE</div>
-                    {% endif %}
-                </div>
-                <div class="card-info" style="flex: 1; padding: 12px; display: flex; flex-direction: column; justify-content: space-between;">
-                    <div class="d-flex justify-content-between">
-                        <span style="color: #00ff41; font-weight: bold;">${{ v.precio }}</span>
-                        <div class="actions">
-                         
-                        <div style="display: flex; gap: 10px; align-items: center;">
+    /* EL HAZ DE LUZ QUE PASA (Sweep Effect) */
+    .btn-tech-sweep::after {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: -150%;
+        width: 60%;
+        height: 100%;
+        background: linear-gradient(
+            90deg, 
+            transparent, 
+            rgba(255, 255, 255, 0.6), /* Haz de luz blanco/cian brillante */
+            transparent
+        );
+        transform: skewX(-25deg);
+        animation: sweep-laser 3s infinite ease-in-out;
+    }
 
-    <a href="{% url 'editar_anuncio' v.pk %}" 
-       style="background: rgba(0, 251, 255, 0.1); border: 1px solid #00fbff; color: #00fbff; padding: 6px 10px; border-radius: 4px; text-decoration: none; box-shadow: 0 0 8px rgba(0, 251, 255, 0.4);"
-       onclick="showOttoNotification('RECALIBRANDO SISTEMA...', 'info')">
-        <i class="bi bi-pencil-square"></i>
-    </a>
+    @keyframes sweep-laser {
+        0% { left: -150%; }
+        30% { left: 150%; } /* Pasa rápido */
+        100% { left: 150%; } /* Pausa antes del siguiente pulso */
+    }
 
-    <form action="{% url 'eliminar_anuncio' v.pk %}" method="post" style="margin: 0;">
-        {% csrf_token %}
-        <button type="submit" 
-                style="background: rgba(255, 0, 85, 0.1); border: 1px solid #ff0055; color: #ff0055; padding: 6px 10px; border-radius: 4px; cursor: pointer; box-shadow: 0 0 8px rgba(255, 0, 85, 0.4);"
-                onclick="return confirm('¿ELIMINAR REGISTRO?')">
-            <i class="bi bi-trash3-fill"></i>
-        </button>
-    </form>
+    /* Animación de parpadeo sutil en el texto */
+    .btn-tech-sweep span {
+        position: relative;
+        z-index: 2;
+        animation: text-flicker 4s infinite;
+    }
 
-</div>
- 
-                         
-                         
-                         
-                         
-                        </div>
-                    </div>
-                    <div style="color: #fff; font-size: 13px; text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-                        {{ v.titulo }}
-                    </div>
-                </div>
-            </div>
-        </div>
-        {% empty %}
-        <div class="col-12 text-center py-5 text-muted" style="border: 1px dashed #2d3136; border-radius: 10px;">
-            [ NO_DATA_DETECTED_IN_SECTOR ]
-        </div>
-        {% endfor %}
+    @keyframes text-flicker {
+        0%, 95%, 100% { opacity: 1; }
+        96% { opacity: 0.7; }
+        98% { opacity: 0.9; }
+    }
+
+    .btn-tech-sweep:hover {
+        background: rgba(0, 242, 255, 0.2);
+        box-shadow: 0 0 20px rgba(0, 242, 255, 0.6);
+        color: #fff;
+    }
+</style>
+
+<a href="{% url 'dashboard' %}" class="btn-tech-sweep">
+    <span><i class="bi bi-cpu"></i> DASHBOARD</span>
+</a>
+
+        
+        
+        
+        
+        <a href="{% url 'editar_perfil' %}" 
+           class="btn-tech-sweep"
+           style="position: relative; display: inline-block; padding: 10px 20px; background: #111; color: #999; border: 1px solid #333; font-family: monospace; font-size: 12px; font-weight: bold; text-decoration: none; text-transform: uppercase; letter-spacing: 2px; overflow: hidden; transition: 0.3s;">
+            <span style="position: relative; z-index: 2;"><i class="bi bi-cpu"></i> EDITAR_PERFIL </span>
+            <div class="sweep-effect" style="background: rgba(255, 0, 0, 0.2);"></div>
+        </a>
     </div>
 </div>
 
 <style>
-@keyframes spin { 100% { transform: rotate(360deg); } }
+    .btn-tech-sweep:hover { color: #fff !important; border-color: #fff !important; }
+    .btn-tech-sweep .sweep-effect { position: absolute; top: 0; left: -100%; width: 100%; height: 100%; background: rgba(255, 255, 255, 0.1); transition: none; z-index: 1; }
+    .btn-tech-sweep:hover .sweep-effect { left: 100%; transition: 0.5s ease-in-out; }
+    .btn-tech-sweep { box-shadow: none !important; text-shadow: none !important; }
 </style>
+{% endif %}
+
+<div class="container mt-4">
+    <div class="profile-premium-wrapper">
+        <div class="profile-header-card-tech">
+            <div class="scanner-bar"></div>
+            
+            <div class="avatar-tech-container">
+                {% if user.perfil.foto_perfil %}
+                    <img src="{{ user.perfil.foto_perfil.url }}" class="avatar-img">
+                {% else %}
+                    <div class="avatar-placeholder">{{ user.username|slice:":1"|upper }}</div>
+                {% endif %}
+                <div class="avatar-ring"></div>
+            </div>
+            
+            <div class="info-section-premium">
+                <h2 class="user-title">{{ user.username|upper }}</h2>
+                <div class="data-grid">
+                    <div class="data-row">
+                        <i class="bi bi-fingerprint"></i>
+                        <span>ID_AUTH: <small style="color:#00f3ff;">{{ user.id }}</small></span>
+                    </div>
+                    <div class="data-row">
+                        <i class="bi bi-person-vcard"></i>
+                        <span>{{ user.perfil.nombre }}</span>
+                    </div>
+                    <div class="data-row">
+                        <i class="bi bi-telephone-fill"></i>
+                        <span> {{ user.perfil.telefono|default:"-- --" }}</span>
+                    </div>
+                    <div class="data-row">
+                        <i class="bi bi-envelope-at-fill"></i>
+                        <span>{{ user.perfil.correo|default:"-- --" }}</span>
+                    </div>
+                    <div class="data-row">
+                        <i class="bi bi-geo-alt-fill"></i>
+                        <span>{{ user.perfil.direccion|default:"-- --" }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+/* 1. EL BORDE QUE RECORRE LUZ (PERÍMETRO) */
+.profile-premium-wrapper {
+    position: relative;
+    padding: 1.5px; /* Grosor del haz de luz */
+    background: linear-gradient(90deg, #00f3ff, #1a1a1a, #00f3ff);
+    background-size: 200% auto;
+    border-radius: 20px;
+    animation: light-perimeter 4s linear infinite;
+    overflow: hidden;
+}
+
+.profile-header-card-tech {
+    background: #0a0a0a;
+    border-radius: 19px;
+    padding: 25px;
+    display: flex;
+    align-items: center;
+    gap: 25px;
+    position: relative;
+    overflow: hidden;
+}
+
+/* 2. EL ESCÁNER LÁSER */
+.scanner-bar {
+    position: absolute;
+    top: -100%;
+    left: 0;
+    width: 100%;
+    height: 3px;
+    background: rgba(0, 243, 255, 0.4);
+    box-shadow: 0 0 15px #00f3ff;
+    animation: scan-move 5s ease-in-out infinite;
+    z-index: 1;
+}
+
+/* 3. FOTO REDONDA Y ANILLO */
+.avatar-tech-container {
+    position: relative;
+    width: 95px;
+    height: 95px;
+    flex-shrink: 0;
+}
+
+.avatar-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
+    border: 2px solid #333;
+    position: relative;
+    z-index: 2;
+}
+
+.avatar-placeholder {
+    width: 100%; height: 100%; border-radius: 50%;
+    background: #111; color: #00f3ff;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 30px; font-family: monospace; border: 2px solid #333;
+}
+
+.avatar-ring {
+    position: absolute;
+    top: -6px; left: -6px; right: -6px; bottom: -6px;
+    border: 2px dotted #00f3ff;
+    border-radius: 50%;
+    animation: spin-ring 12s linear infinite;
+    opacity: 0.3;
+}
+
+/* 4. TEXTO Y GRILLA */
+.user-title {
+    color: #fff;
+    margin: 0 0 12px 0;
+    font-family: monospace;
+    letter-spacing: 4px;
+    font-size: 22px;
+}
+
+.data-grid { display: flex; flex-direction: column; gap: 7px; }
+
+.data-row {
+    display: flex; align-items: center;
+    gap: 12px; color: #888;
+    font-family: monospace; font-size: 13px;
+}
+
+.data-row i { color: #00f3ff; font-size: 1.1rem; }
+.data-row span { color: #ccc; }
+
+/* ANIMACIONES */
+@keyframes light-perimeter {
+    0% { background-position: 0% center; }
+    100% { background-position: 200% center; }
+}
+
+@keyframes scan-move {
+    0%, 100% { top: -5%; }
+    50% { top: 105%; }
+}
+
+@keyframes spin-ring {
+    to { transform: rotate(360deg); }
+}
+</style>
+
+
+
+
+    <h4 class="mt-5 mb-4" style="color: #999; font-size: 14px; letter-spacing: 3px; font-family: monospace; border-left: 4px solid #ff0000; padding-left: 10px;">
+        INVENTARIO_ACTIVO_EN_RED
+    </h4>
+    
+    <div class="row g-3">
+        {% for v in mis_anuncios %}
+        <div class="col-12 col-md-6">
+            <div class="card-item-horizontal" style="background: #000; border: 1px solid #222; display: flex; height: 120px; transition: 0.3s; overflow: hidden;">
+                <div class="img-mini" style="width: 120px; min-width: 120px; background: #111;">
+                    {% if v.foto %} 
+                        <img src="{{ v.foto.url }}" style="width: 100%; height: 100%; object-fit: cover;"> 
+                    {% else %}
+                        <div style="color: #333; font-size: 9px; text-align: center; padding-top: 50px; font-family: monospace;">NO_IMG</div>
+                    {% endif %}
+                </div>
+                
+                <div class="card-info" style="flex: 1; padding: 12px; display: flex; flex-direction: column; justify-content: space-between;">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div style="color: #fff; font-size: 13px; text-transform: uppercase; font-weight: bold; font-family: monospace;">
+                            {{ v.titulo|truncatechars:20 }}
+                        </div>
+                        <div style="color: #00ff41; font-family: monospace; font-weight: bold; font-size: 14px;">${{ v.precio }}</div>
+                    </div>
+                    
+
+<div style="display: flex; justify-content: flex-end; align-items: center; gap: 15px; border-top: 1px solid #1a1a1a; padding-top: 12px; margin-top: 10px;">
+    
+    <a href="{% url 'editar_anuncio' v.id %}" 
+       style="text-decoration: none; font-size: 18px; filter: drop-shadow(0 0 5px #ffaa00);" 
+       title="EDITAR">✏️</a>
+
+    <form id="form-eliminar-{{ v.id }}" action="{% url 'eliminar_anuncio' v.id %}" method="post" style="margin: 0;">
+        {% csrf_token %}
+        <button type="button" 
+                style="background: transparent; border: none; cursor: pointer; font-size: 18px; filter: drop-shadow(0 0 5px #ff0000);"
+                onclick="confirmarEliminar('form-eliminar-{{ v.id }}')">
+            🗑️
+        </button>
+    </form>
+
+    {% if not v.vendido %}
+        <button onclick="ejecutarVenta(this, {{ v.id }})" 
+            style="background: transparent; border: none; cursor: pointer; font-size: 18px; filter: drop-shadow(0 0 5px #28a745);"
+            title="VENDER">💲</button>
+    {% else %}
+        <span style="color: #999; font-family: monospace; font-size: 10px; text-transform: uppercase;"Vendido</span>
+        <button onclick="revertirVenta(this, {{ v.id }})" 
+            style="background: transparent; border: none; cursor: pointer; font-size: 18px; filter: drop-shadow(0 0 5px #ffc107);"
+            title="REVERTIR">🔄</button>
+    {% endif %}
+</div>
+
+</div> </div> </div> {% empty %}
+    <div class="col-12 text-center py-5 text-muted" style="border: 1px dashed #333; font-family: monospace; letter-spacing: 2px;">
+        [ SIN_DATOS_EN_MEMORIA ]
+    </div>
+{% endfor %}
+</div> <div id="cyber-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.95); z-index:9999; align-items:center; justify-content:center;">
+    <div style="border: 2px solid #ff0055; background:#000; padding:30px; text-align:center; box-shadow:0 0 20px #ff0055; max-width:300px;">
+        <h3 style="color:#ff0055; font-family:monospace; margin:0; letter-spacing:2px;">⚠️ ADVERTENCIA</h3>
+        <p style="color:#fff; font-family:monospace; margin: 20px 0;">¿BORRAR REGISTRO DE LA RED?</p>
+        <div style="display:flex; gap:10px; justify-content:center;">
+            <button id="confirm-yes" style="background:#ff0055; color:#000; border:none; padding:10px 20px; font-weight:bold; cursor:pointer; font-family:monospace;">ELIMINAR</button>
+            <button id="confirm-no" style="background:#333; color:#fff; border:none; padding:10px 20px; cursor:pointer; font-family:monospace;">ABORTAR</button>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
+<script>
+    let formIdGlobal = '';
+
+    function confirmarEliminar(id) {
+        formIdGlobal = id;
+        document.getElementById('cyber-modal').style.display = 'flex';
+    }
+
+    document.getElementById('confirm-yes').onclick = () => { if(formIdGlobal) document.getElementById(formIdGlobal).submit(); };
+    document.getElementById('confirm-no').onclick = () => { document.getElementById('cyber-modal').style.display = 'none'; };
+
+    function dispararConfeti() {
+        confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 }, colors: ['#00f3ff', '#ff0055', '#ffff00'] });
+    }
+
+    function ejecutarVenta(btn, id) {
+        dispararConfeti();
+        fetch('/marcar-vendido/' + id + '/', { method: 'POST', headers: {'X-CSRFToken': '{{ csrf_token }}'} })
+        .then(() => setTimeout(() => location.reload(), 1000));
+    }
+
+    function revertirVenta(btn, id) {
+        dispararConfeti();
+        fetch('/anuncio/reactivar/' + id + '/', { method: 'POST', headers: {'X-CSRFToken': '{{ csrf_token }}'} })
+        .then(() => setTimeout(() => location.reload(), 1000));
+    }
+</script>
 {% endblock %}
+
+
+
+
+

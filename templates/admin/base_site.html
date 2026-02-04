@@ -2,37 +2,94 @@
 {% load static %}
 
 {% block extrahead %}
-    <link rel="stylesheet" href="{% static 'admin/css/custom_admin.css' %}">
-    
-    <script>
-        // Función para cambiar entre modo claro y oscuro
-        function toggleTheme() {
-            const html = document.documentElement;
-            const currentTheme = html.getAttribute('data-theme');
-            const targetTheme = currentTheme === 'dark' ? 'light' : 'dark';
-            
-            html.setAttribute('data-theme', targetTheme);
-            localStorage.setItem('admin-theme', targetTheme);
+    <style>
+        /* --- ESTILOS ORIGINALES / RESET --- */
+        :root[data-theme='original'] { 
+            --n-bg: transparent; --n-accent: #79aec8; --n-text: #333; --n-panel: #79aec8; --n-glow: none; --font: 'Roboto', sans-serif; 
         }
 
-        // Al cargar la página, aplicar el tema guardado
+        /* --- MATRIZ DE CONFIGURACIÓN DE ENTORNOS PREMIUM --- */
+        :root[data-theme='hacker']   { --n-bg: #000b00; --n-accent: #39ff14; --n-text: #39ff14; --n-panel: #001a00; --n-glow: rgba(57, 255, 20, 0.4); --font: 'Courier New', monospace; }
+        :root[data-theme='darkweb']  { --n-bg: #050505; --n-accent: #ff0055; --n-text: #e0e0e0; --n-panel: #111; --n-glow: rgba(255, 0, 85, 0.4); --font: 'Orbitron', sans-serif; }
+        :root[data-theme='neon']     { --n-bg: #0a0a2e; --n-accent: #00f3ff; --n-text: #fff; --n-panel: #16164d; --n-glow: rgba(0, 243, 255, 0.4); --font: 'Segoe UI', sans-serif; }
+        :root[data-theme='ubuntu']   { --n-bg: #300a24; --n-accent: #e95420; --n-text: #fff; --n-panel: #5e2750; --n-glow: rgba(233, 84, 32, 0.4); --font: 'Ubuntu', sans-serif; }
+        :root[data-theme='mac']      { --n-bg: #ececec; --n-accent: #007aff; --n-text: #1d1d1f; --n-panel: #ffffff; --n-glow: rgba(0, 122, 255, 0.2); --font: '-apple-system', sans-serif; }
+        :root[data-theme='windows']  { --n-bg: #0078d7; --n-accent: #ffffff; --n-text: #ffffff; --n-panel: #104a7a; --n-glow: rgba(255, 255, 255, 0.4); --font: 'Segoe UI', sans-serif; }
+
+        /* --- APLICACIÓN CONDICIONAL (Solo si no es 'original') --- */
+        :root:not([data-theme='original']) body { background: var(--n-bg) !important; color: var(--n-text) !important; font-family: var(--font) !important; transition: 0.4s; }
+        
+        :root:not([data-theme='original']) body::before {
+            content: ""; position: fixed; top: 0; left: 0; width: 100%; height: 5px;
+            background: var(--n-accent); opacity: 0.1; animation: scanline 8s linear infinite; pointer-events: none; z-index: 9999;
+        }
+
+        :root:not([data-theme='original']) #header { 
+            background: rgba(0,0,0,0.8) !important; border-bottom: 3px solid var(--n-accent) !important; box-shadow: 0 0 15px var(--n-glow);
+        }
+
+        :root:not([data-theme='original']) .module h2 { 
+            background: var(--n-panel) !important; color: var(--n-accent) !important; border-left: 4px solid var(--n-accent) !important;
+        }
+
+        /* --- EL INTERRUPTOR (SIEMPRE ACTIVO CON EL TEMA) --- */
+        input[type="checkbox"] {
+            appearance: none; width: 42px; height: 20px; background: #ccc;
+            border-radius: 20px; position: relative; cursor: pointer;
+            border: 2px solid #999; transition: 0.3s; vertical-align: middle;
+        }
+        :root:not([data-theme='original']) input[type="checkbox"] { border-color: var(--n-accent); background: #333; }
+        input[type="checkbox"]:checked { background: var(--n-accent) !important; }
+        input[type="checkbox"]::before {
+            content: ''; position: absolute; width: 14px; height: 14px;
+            background: #fff; border-radius: 50%; top: 1px; left: 2px; transition: 0.3s;
+        }
+        input[type="checkbox"]:checked::before { left: 22px; }
+
+        /* --- BOTÓN DE CONTROL --- */
+        .theme-switcher {
+            background: #79aec8; color: white; border: none;
+            padding: 8px 15px; border-radius: 4px; cursor: pointer;
+            font-weight: bold; text-transform: uppercase; transition: 0.3s;
+        }
+        :root:not([data-theme='original']) .theme-switcher {
+            background: transparent; color: var(--n-accent); border: 2px solid var(--n-accent);
+        }
+
+        @keyframes scanline { 0% { top: -100%; } 100% { top: 100%; } }
+    </style>
+    
+    <script>
+        function rotateTheme() {
+            const html = document.documentElement;
+            // El ciclo incluye el original
+            const themes = ['original', 'hacker', 'darkweb', 'neon', 'ubuntu', 'mac', 'windows'];
+            let current = html.getAttribute('data-theme') || 'original';
+            let next = themes[(themes.indexOf(current) + 1) % themes.length];
+            html.setAttribute('data-theme', next);
+            localStorage.setItem('otto-admin-theme', next);
+            document.getElementById('os-name').innerText = next === 'original' ? 'MODO_NORMAL' : next.toUpperCase();
+        }
+
         document.addEventListener('DOMContentLoaded', () => {
-            const savedTheme = localStorage.getItem('admin-theme') || 'light';
-            document.documentElement.setAttribute('data-theme', savedTheme);
+            // Carga 'original' por defecto si no hay nada guardado
+            const saved = localStorage.getItem('otto-admin-theme') || 'original';
+            document.documentElement.setAttribute('data-theme', saved);
+            document.getElementById('os-name').innerText = saved === 'original' ? 'MODO_NORMAL' : saved.toUpperCase();
         });
     </script>
 {% endblock %}
 
 {% block branding %}
-    <div style="display: flex; align-items: center; justify-content: space-between; width: 100%; padding-right: 20px;">
+    <div style="display: flex; align-items: center; justify-content: space-between; width: 100%; padding: 5px 0;">
         <h1 id="site-name">
-            <a href="{% url 'admin:index' %}" style="text-transform: uppercase; letter-spacing: -1px; font-weight: 800;">
-                Otto-Market Pro
+            <a href="{% url 'admin:index' %}" style="display: flex; align-items: center; gap: 10px;">
+                <span style="font-weight: 900;">OTTO-MARKET</span>
+                <span id="os-name" style="font-size: 9px; padding: 2px 6px; border: 1px solid #ccc; border-radius: 3px; opacity: 0.8;"></span>
             </a>
         </h1>
-        
-        <button type="button" onclick="toggleTheme()" style="background: #007bff; color: white; border: none; padding: 6px 14px; border-radius: 20px; cursor: pointer; font-weight: bold; font-size: 11px; transition: 0.3s;">
-            🌓 CAMBIAR TEMA
+        <button type="button" onclick="rotateTheme()" class="theme-switcher">
+            ⚡ CAMBIAR_ESTILO
         </button>
     </div>
 {% endblock %}

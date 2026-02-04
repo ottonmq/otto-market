@@ -2,12 +2,55 @@
 {% load socialaccount %}
 <html lang="es">
 <head>
+  
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>OTTO-MARKET // SYSTEM</title>
     
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    
+      <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+
+    <style>
+        /* ESTILOS DEL SLIDER (Se quedan en el head) */
+        .otto-neon-slider {
+            background: #000000;
+            height: 45px;
+            width: 100%;
+            position: relative;
+            display: flex;
+            align-items: center;
+            overflow: hidden;
+            border-bottom: 1px solid #111;
+            z-index: 9999;
+        }
+        .fade-overlay-left, .fade-overlay-right {
+            position: absolute; top: 0; width: 120px; height: 100%; z-index: 10;
+        }
+        .fade-overlay-left { left: 0; background: linear-gradient(to right, #000, transparent); }
+        .fade-overlay-right { right: 0; background: linear-gradient(to left, #000, transparent); }
+        .otto-central-glow {
+            position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+            width: 150px; height: 100%; background: radial-gradient(circle, rgba(255, 255, 255, 0.05) 0%, transparent 70%);
+            pointer-events: none; z-index: 5;
+        }
+        .otto-track { display: flex; width: calc(300px * 8); animation: scroll-tech 25s linear infinite; }
+        
+        .otto-slide { width: 300px; display: flex; align-items: center; justify-content: center; gap: 12px; opacity: 0.8; transition: opacity 0.5s ease; }
+        .otto-slide:hover { opacity: 1; }
+        .otto-slide i { font-size: 1.2rem; color: #ffffff; }
+        .otto-slide span { font-family: sans-serif; color: #cecece; font-size: 0.85rem; letter-spacing: 1.5px; }
+        @keyframes scroll-tech { 0% { transform: translateX(0); } 100% { transform: translateX(calc(-300px * 4)); } }
+        @media (max-width: 600px) { .otto-track { animation: scroll-tech 20s linear infinite; } .otto-slide { width: 250px; } }
+    </style>
+    
+    
+    
+    
+    
+    
     
     <style>
         /* SOLDADURA DE RESPONSIVE - NADA SE MUEVE */
@@ -61,10 +104,40 @@
 </head>
 <body>
 
+
+<div class="otto-neon-slider">
+    <div class="fade-overlay-left"></div>
+    <div class="fade-overlay-right"></div>
+    <div class="otto-central-glow"></div>
+
+    <div class="otto-track">
+        <div class="otto-slide"><i class="bi bi-github"></i><span>GITHUB.COM/OTTOMNQ</span></div>
+        <div class="otto-slide"><i class="bi bi-telephone-fill"></i><span>+503 7651-1585</span></div>
+        <div class="otto-slide"><i class="bi bi-terminal-fill"></i><span>OTTO-MARKET V3</span></div>
+        <div class="otto-slide"><i class="bi bi-cpu-fill"></i><span>CD FAS ENGINE</span></div>
+        <div class="otto-slide"><i class="bi bi-shield-lock-fill"></i><span>SECURE_SYSTEM</span></div>
+        <div class="otto-slide"><i class="bi bi-database-fill"></i><span>DATABASE_ON</span></div>
+        
+        <div class="otto-slide"><i class="bi bi-github"></i><span>GITHUB.COM/OTTOMNQ</span></div>
+        <div class="otto-slide"><i class="bi bi-telephone-fill"></i><span>+503 7651-1585</span></div>
+        <div class="otto-slide"><i class="bi bi-terminal-fill"></i><span>OTTO-MARKET V3</span></div>
+        <div class="otto-slide"><i class="bi bi-cpu-fill"></i><span>CD FAS ENGINE</span></div>
+        <div class="otto-slide"><i class="bi bi-shield-lock-fill"></i><span>SECURE_SYSTEM</span></div>
+        <div class="otto-slide"><i class="bi bi-database-fill"></i><span>DATABASE_ON</span></div>
+    </div>
+</div>
+
+
+    </body>
+</html>
+
     <header class="nav-otto">
-
-<h1 class="otto-logo-live">OTTO MARKET</h1>
-
+ <div style="width: 100%; text-align: center; padding: 15px 0; background: #000;">
+    <h4 class="otto-logo-live" style="margin: 0; display: block; width: 100%;">OTTO MARKET</h4>
+</div>
+     
+      
+      
 <style>
     .otto-logo-live {
         color: #00f3ff;
@@ -192,9 +265,7 @@
 
     <nav class="grid-responsive">
 
-        
 {% if not user.is_authenticated %}
-
 
 <div class="otto-core-access">
     <div class="access-divider"></div>
@@ -398,48 +469,208 @@
 {% endif %}
 
 
-<a href="{% url 'dashboard' %}" class="btn-system">
-    <i class="bi bi-cpu"></i> DASHBOARD
-</a>
+<style>
+    @keyframes pulse-red {
+        0% { box-shadow: 0 0 0 0 rgba(255, 0, 0, 0.7); }
+        70% { box-shadow: 0 0 0 10px rgba(255, 0, 0, 0); }
+        100% { box-shadow: 0 0 0 0 rgba(255, 0, 0, 0); }
+    }
+</style>
 
-<a href="{% url 'perfil' %}" class="btn-system">
-    <i class="bi bi-person"></i> PERSONAL
-</a>
-
-<a href="{% url 'stats' %}" class="btn-system">
-    <i class="bi bi-bar-chart"></i> STATS
-
-{% if user.is_superuser %}
-    <a href="/admin/" class="btn-system admin">
-        <i class="bi bi-shield-lock"></i> ADMIN
+    <a href="{% url 'stats' %}" class="btn-system" style="display: flex; align-items: center; justify-content: center;">
+        <i class="bi bi-bar-chart"></i> STATS
     </a>
-{% endif %}
 
-<a href="{% url 'home' %}" class="btn-system">
-    <i class="bi bi-globe"></i> GLOBAL
-</a>
+    <a href="{% url 'home' %}" class="btn-system" style="display: flex; align-items: center; justify-content: center;">
+        <i class="bi bi-globe"></i> GLOBAL
+    </a>
+
+    <div class="btn-system" style="display: flex; justify-content: space-around; align-items: center; background: #080808; border-left: 2px solid #00f3ff; position: relative; overflow: hidden; padding: 5px 0;">
+        <div class="scanner-line" style="position: absolute; top: 0; left: -100%; width: 100%; height: 100%; background: linear-gradient(90deg, transparent, rgba(0,243,255,0.1), transparent); animation: scan 3s infinite linear;"></div>
+        
+        <div style="text-align: center;">
+            <div style="font-size: 10px; color: #00f3ff; font-family: 'Orbitron';">ONLINE</div>
+            <div style="font-size: 14px; font-weight: bold; color: #fff; animation: blink 1.5s infinite;">{{ online|default:"1" }}</div>
+        </div>
+
+        <div style="text-align: center;">
+            <div style="font-size: 10px; color: #ff00ff; font-family: 'Orbitron';">VISTAS</div>
+            <div style="font-size: 14px; font-weight: bold; color: #fff; animation: blink 2s infinite;">{{ vistas|default:"0" }}</div>
+        </div>
+    </div>
+</nav>
+
+<style>
+@keyframes blink {
+    0%, 100% { opacity: 1; text-shadow: 0 0 5px #00f3ff; }
+    50% { opacity: 0.4; text-shadow: none; }
+}
+@keyframes scan {
+    0% { left: -100%; }
+    100% { left: 100%; }
+}
+</style>
+
+
+  
+
+    
+
+    
+
+
+
+
+
+<style>
+/* CSS CRÍTICO PARA QUE NO SE ROMPA */
+@keyframes blink {
+    0%, 100% { opacity: 1; text-shadow: 0 0 5px #00f3ff; }
+    50% { opacity: 0.4; text-shadow: none; }
+}
+@keyframes scan {
+    0% { left: -100%; }
+    100% { left: 100%; }
+}
+.grid-responsive {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    width: 100% !important;
+}
+</style>
+
+  {% if user.is_authenticated %}
+        <a href="{% url 'perfil' %}" class="btn-system" style="display: flex; align-items: center; justify-content: center; border-left: 3px solid #00f3ff;">
+            <i class="bi bi-person-fill"></i> <span style="margin-left: 8px;">{{ user.username|upper }}</span>
+        </a>
+    {% endif %}
+
+    {% if user.is_superuser %}
+        <a href="/admin/" class="btn-system" style="border: 1px solid #ff0055; box-shadow: 0 0 10px rgba(255, 0, 85, 0.4); display: flex; align-items: center; justify-content: center; color: #ff0055 !important;">
+            <i class="bi bi-shield-lock-fill"></i> <span style="margin-left: 5px;">ADMIN</span>
+        </a>
+    {% endif %}
+
+  
+
+
+      
+
+
+
+
+
+
+
+    
+            
+
+    
+<style>
+    .hud-line {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        padding: 10px;
+        position: relative;
+    }
+
+    /* Icono de señal parpadeante */
+    .signal-status {
+        display: inline-block;
+        width: 8px;
+        height: 8px;
+        background-color: #00f2ff;
+        border-radius: 50%;
+        margin-right: 8px;
+        box-shadow: 0 0 8px #00f2ff;
+        animation: signal-blink 1.5s infinite ease-in-out;
+    }
+
+    @keyframes signal-blink {
+        0%, 100% { opacity: 1; filter: brightness(1); }
+        50% { opacity: 0.3; filter: brightness(2) blur(1px); }
+    }
+
+    .value {
+        font-family: 'Orbitron', monospace;
+        color: #00f2ff;
+        text-shadow: 0 0 5px #00f2ff;
+        font-weight: bold;
+        animation: value-flicker 3s infinite;
+    }
+
+    /* Efecto Glitch sutil en los números */
+    @keyframes value-flicker {
+        0%, 95%, 100% { opacity: 1; transform: scale(1); }
+        96% { opacity: 0.8; transform: scale(1.02) skewX(2deg); }
+        98% { opacity: 0.9; transform: scale(0.98) skewX(-2deg); }
+    }
+
+    .label {
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        font-size: 10px;
+        color: rgba(0, 242, 255, 0.7);
+    }
+</style>
+
+
+    
+
+    
+
+
+
+
+<style>
+/* Estilo Cyberpunk Integrado (No Flotante) */
+.otto-hud-static {
+    position: relative; /* Cambiado de fixed a relative para que se quede en su lugar */
+    display: inline-block; /* Se ajusta al contenido */
+    background: rgba(0, 0, 0, 0.85);
+    border-left: 3px solid #00f3ff;
+    padding: 5px 15px;
+    font-family: 'Courier New', monospace;
+    box-shadow: 0 0 10px rgba(0, 243, 255, 0.2);
+    overflow: hidden; /* Para que el escáner no se salga del cuadrito */
+}
+
+.hud-scanner {
+    position: absolute;
+    top: 0; 
+    left: 0; 
+    width: 100%; 
+    height: 2px;
+    background: #00f3ff;
+    box-shadow: 0 0 10px #00f3ff;
+    animation: scan 3s linear infinite;
+}
+
+.hud-line {
+    font-size: 0.75rem;
+    margin-bottom: 2px;
+    white-space: nowrap;
+}
+
+.label { color: #00f3ff; }
+.value { color: #ff00ff; font-weight: bold; text-shadow: 0 0 5px #ff00ff; }
+
+@keyframes scan {
+    0% { top: 0; }
+    100% { top: 100%; }
+}
+</style>
+
 
     </nav>
 
     <main style="width: 100%; padding: 15px;">
         {% block content %}{% endblock %}
     </main>
-<div class="support-wrapper">
-    <div class="support-menu" id="supportMenu">
-        <a href="mailto:ottonmq@gmail.com" class="support-item mail">
-            <i class="bi bi-envelope-at-fill"></i>
-            <span class="tooltip-tech">CORREO_SUPPORT</span>
-        </a>
-        <a href="https://wa.me/5037651585" target="_blank" class="support-item whatsapp">
-            <i class="bi bi-whatsapp"></i>
-            <span class="tooltip-tech">WHATSAPP_LINK</span>
-        </a>
-    </div>
 
-    <button class="support-main-btn" onclick="toggleSupport()">
-        <i class="bi bi-headset"></i>
-        <div class="ping-pulse"></div>
-    </button>
+
+  
 </div>
 
 <style>
@@ -644,8 +875,50 @@
     }
 </script>
 
+
+
+
 </body>
 </html>
+
+
+
+
+  
+  
+  <div class="support-wrapper">
+    <div class="support-menu" id="supportMenu">
+       <a href="mailto:{{ user.perfil.correo|default:'ottonmqe@gmail.com' }}" class="support-item mail">
+            <i class="bi bi-envelope-at-fill"></i>
+            <span class="tooltip-tech">CORREO_SUPPORT</span>
+        </a>
+
+        <a href="https://wa.me/{{ user.perfil.prefijo|default:'503' }}{{ user.perfil.telefono|default:'00000000' }}" 
+           target="_blank" 
+           class="support-item whatsapp">
+            <i class="bi bi-whatsapp"></i>
+            <span class="tooltip-tech">WHATSAPP_LINK</span>
+        </a>
+    </div>
+
+    <button class="support-main-btn" onclick="toggleSupport()">
+        <i class="bi bi-headset"></i>
+        <div class="ping-pulse"></div>
+    </button>
+</div>
+
+<script>
+    // Función única para abrir/cerrar el menú
+    function toggleSupport() {
+        const menu = document.getElementById('supportMenu');
+        if (menu.style.display === 'flex') {
+            menu.style.display = 'none';
+        } else {
+            menu.style.display = 'flex';
+        }
+    }
+</script>
+
 
 
 

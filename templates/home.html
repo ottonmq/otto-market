@@ -36,9 +36,9 @@
 
     /* BUSCADOR */
     .search-container { padding: 0 15px; margin-bottom: 20px; }
-    .search-box { background: #000; border: 1px solid var(--steel-border); display: flex; border-radius: 2px; overflow: hidden; }
+    .search-box { background: #000; border: 1px solid var(--steel-border); display: flex; border-radius: 50px; overflow: hidden; }
     .search-input { background: transparent; border: none; color: white; padding: 12px 15px; width: 100%; font-size: 12px; outline: none; }
-    .search-btn { background: var(--robot-blue); color: white; border: none; padding: 0 20px; font-weight: bold; font-size: 11px; cursor: pointer; }
+    .search-btn { background: var(--robot-black); color: white; border: none; padding: 0 20px; font-weight: bold; font-size: 11px; cursor: pointer; }
 
     /* CATEGORÍAS */
     .cat-btn {
@@ -63,6 +63,7 @@
     .sk-block { 
         background: linear-gradient(90deg, #111 25%, #1a1c1e 50%, #111 75%);
         background-size: 200% 100%; animation: shimmer 1.5s infinite linear;
+    
     }
     @keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
 </style>
@@ -73,7 +74,7 @@
         <div class="status-indicator blink-alive"></div>
         <h2 class="panel-title">OTTO_MARKET // GLOBAL_RADAR</h2>
     </div>
-    <span class="units-counter">UNITS_LOADED: {{ anuncios|length }}</span>
+    <span class="units-counter">PUBLICACIONES: {{ anuncios|length }}</span>
 </div>
 
 <style>
@@ -143,9 +144,9 @@
     }
 
     .units-counter {
-        color: #555;
+        color: #999;
         font-family: 'monospace';
-        font-size: 9px;
+        font-size: 10px;
         text-transform: uppercase;
     }
 </style>
@@ -163,15 +164,150 @@
     </form>
 </div>
 
-<div class="category-scanner mb-4" style="padding: 0 15px;">
-    <div class="d-flex justify-content-center flex-wrap gap-2">
-        <a href="{% url 'home' %}" class="cat-btn active">TODO</a>
-        <a href="?q=Carro" class="cat-btn">VEHÍCULOS</a>
-        <a href="?q=Celular" class="cat-btn">TECNOLOGÍA</a>
-        <a href="?q=Hogar" class="cat-btn">HOGAR</a>
-        <a href="?q=Servicio" class="cat-btn">SERVICIOS</a>
+
+
+
+
+
+
+<style>
+    /* RESET DE LA BARRA DE ESCÁNER */
+    .category-scanner {
+        background: rgba(0, 5, 5, 0.9);
+        border-bottom: 2px solid #0ff;
+        padding: 15px 0;
+        overflow: hidden;
+    }
+    
+    /* CONTENEDOR HORIZONTAL */
+    .filter-bar {
+        display: flex;
+        flex-direction: row; /* FUERZA HORIZONTAL */
+        overflow-x: auto;    /* ACTIVA SCROLL LATERAL */
+        white-space: nowrap;
+        gap: 15px;
+        padding: 10px 20px;
+    }
+
+    /* OCULTAR BARRA DE SCROLL MANTENIENDO FUNCIÓN */
+    .filter-bar::-webkit-scrollbar { display: none; }
+    .filter-bar { -ms-overflow-style: none; scrollbar-width: none; }
+
+    /* BOTONES CYBERPUNK */
+    .cat-btn {
+        display: inline-block;
+        color: #0ff;
+        text-decoration: none;
+        padding: 8px 25px;
+        border: 1px solid #0ff;
+        font-family: 'Courier New', monospace;
+        font-weight: bold;
+        text-transform: uppercase;
+        background: transparent;
+        transition: 0.3s;
+        box-shadow: inset 0 0 5px #0ff;
+    }
+
+    .cat-btn.active {
+        background: #0ff;
+        color: #000;
+        box-shadow: 0 0 15px #0ff;
+    }
+</style>
+
+
+<style>
+  .scanner-main {
+        width: 100%;
+        background: #000;
+        /* Línea de base en gris sutil */
+        border-bottom: 1px solid #1a1a1a; 
+        padding: 15px 10px;
+        box-sizing: border-box;
+    }
+
+    .grid-radar {
+        display: flex;
+        flex-wrap: wrap; 
+        gap: 12px; /* Aumentamos el gap para que se noten las curvas */
+        justify-content: center; 
+    }
+
+    .btn-cyber {
+        /* Mantenemos el tamaño para 2 por fila en móvil */
+        flex: 1 1 45%; 
+        min-width: 140px; 
+        position: relative;
+        background: #0a0a0a; /* Fondo oscuro Neon.tech */
+        color: #888; /* CAMBIO: Gris en lugar de Cian */
+        border: 1px solid #1a1a1a; /* Borde gris acero sutil */
+        border-radius: 12px; /* CAMBIO: Puntas redondeadas */
+        padding: 15px 5px;
+        text-align: center;
+        text-decoration: none;
+        font-family: 'Inter', sans-serif; /* Tipografía más moderna */
+        font-size: 11px;
+        font-weight: 600;
+        text-transform: uppercase;
+        overflow: hidden;
+        transition: all 0.3s ease;
+        -webkit-tap-highlight-color: transparent;
+    }
+
+    /* BARRIDO LÁSER LÍMPIO */
+ .btn-cyber::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.05), transparent);
+        animation: sweep 3s infinite;
+    }
+
+    /* ESTADO ACTIVO: Se ilumina sutilmente */
+    .btn-cyber.active {
+        border: 1px solid #444 !important;
+        background: #111 !important;
+        color: #fff !important; /* Texto blanco cuando está activo */
+        box-shadow: 0 0 15px rgba(255, 255, 255, 0.03) !important;
+    }
+
+    /* Efecto al tocar */
+    .btn-cyber:active {
+        transform: scale(0.96);
+        background: #161616;
+    }
+
+    @keyframes sweep {
+        0% { left: -100%; }
+        50% { left: 100%; }
+        100% { left: 100%; }
+    }
+</style>
+
+
+
+
+<div class="scanner-main">
+    <div class="grid-radar">
+        <a href="{% url 'home' %}" class="btn-cyber {% if not query %}active{% endif %}">TODO</a>
+        <a href="?q=Vehículos" class="btn-cyber {% if query == 'Vehículos' %}active{% endif %}">VEHÍCULOS</a>
+        <a href="?q=Tecnología" class="btn-cyber {% if query == 'Tecnología' %}active{% endif %}">TECNOLOGÍA</a>
+        <a href="?q=Hogar" class="btn-cyber {% if query == 'Hogar' %}active{% endif %}">HOGAR</a>
+          
+          <a href="?q=Servicios" class="btn-cyber {% if query == 'Servicios' %}active{% endif %}">SERVICIOS</a>
+
+          <a href="?q=Otros" class="btn-cyber {% if query == 'Otros' %}active{% endif %}">OTROS</a>
+
     </div>
 </div>
+
+
+
+
+
 
 <div id="loading-skeleton" class="market-container">
     {% for i in "1234" %}
@@ -183,27 +319,39 @@
     </div>
     {% endfor %}
 </div>
-
+ 
 <div id="real-content" class="market-container" style="display: none;">
     {% for anuncio in anuncios %}
     <div class="product-card">
         <div class="img-container">
-            <div class="unit-label">{{ anuncio.tipo_negocio }}</div>
+            <div class="unit-label">{{ anuncio.tipo_negocio| default:"venta" }}</div>
             {% if anuncio.foto %}
                 <img src="{{ anuncio.foto.url }}" alt="Data">
             {% else %}
-                <div style="height: 100%; display: flex; align-items: center; justify-content: center; font-size: 8px; color: #333;">NO_DATA</div>
+                <div style="height: 100%; display: flex; align-items: center; justify-content: center; font-size: 8px; color: ​#EEEEEE;">NO_DATA</div>
             {% endif %}
         </div>
-        <div class="product-title">{{ anuncio.marca }} {{ anuncio.modelo }}</div>
-        <div class="price-display">${{ anuncio.precio }}</div>
+         <div class="product-title" style="color: #EEEEEE !important; font-size: 12px !important; font-weight: 900 !important; font-family: monospace; text-transform: uppercase; margin-top: 10px;">
+    {{ anuncio.titulo|default:"-----" }} 
+    <br>
+    {{ anuncio.marca|default:"-----"}} 
+    <br>
+    {{ anuncio.modelo|default:"-----" }}
+    <br>
+    {{ anuncio.estado_fisico|default:"-----"}}
+</div>
+
+   <div class="price-display">${{ anuncio.precio| default:"" }}</div>
+
 <a href="{% url 'detalle' anuncio.id %}" 
    class="action-button" 
    onclick="showOttoNotification('ACCEDIENDO_A_DATOS_RESERVADOS...', 'info')">
-    ABRIR_EXPEDIENTE
+    DETALLES 
 </a>
 
-    </div>
+
+
+   </div> 
     {% empty %}
         <div style="grid-column: span 2; text-align: center; padding: 100px 0;">
         <i class="bi bi-cpu text-muted" style="font-size: 30px;"></i>
@@ -213,12 +361,36 @@
 </div>
 
 <script>
-    window.addEventListener('load', function() {
-        // Apaga los cuadros grises
-        document.getElementById('loading-skeleton').style.display = 'none';
-        // Enciende los anuncios reales
-        document.getElementById('real-content').style.display = 'grid';
-    });
+    // PROTOCOLO DE TRANSICIÓN: SKELETON -> RADAR REAL
+    function activarRadarReal() {
+        const skeleton = document.getElementById('loading-skeleton');
+        const content = document.getElementById('real-content');
+        
+        if (skeleton && content) {
+            skeleton.style.opacity = '0'; // Efecto de desvanecimiento
+            setTimeout(() => {
+                skeleton.style.display = 'none';
+                content.style.display = 'grid';
+                console.log(">> SISTEMA_OTTO: DATA_SYNC_COMPLETE");
+            }, 300);
+        }
+    }
+
+    // 1. Activar cuando todo cargue
+    window.addEventListener('load', activarRadarReal);
+
+    // 2. SEGURO DE VIDA: Si a los 2.5 segundos no cargó, forzar la vista
+    // Esto evita que el usuario vea cuadros grises infinitos
+    setTimeout(activarRadarReal, 2500);
 </script>
 
+
+
+
+
+
+
 {% endblock %}
+
+
+        

@@ -1,61 +1,140 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
-from .models import Publicacion, Categoria, Imagen
-from .forms import PublicacionForm
-from django.db.models import Q, Count
+from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
+from django.contrib.auth.models import User
 from django.contrib import messages
+from django.db.models import Q, Count, Sum
+from django.utils import timezone
+from datetime import timedelta
 
-# RADAR HOME
+from .models import Publicacion, Categoria, Imagen ,Perfil
+from .forms import PublicacionForm 
+from .forms import PerfilForm
+
+# --- 1. ACCESO Y SEGURIDAD ---
+def login_view(request):
+    if request.method == 'POST':
+        form = AuthenticationForm(request, data=request.POST)
+        if form.is_valid():
+            user = authenticate(username=form.cleaned_data.get('username'), password=form.cleaned_data.get('password'))
+            if user:
+                login(request, user)
+                return redirect('home')
+    else:
+        form = AuthenticationForm()
+    return render(request, 'login.html', {'form': form})
+
+def registro_view(request):
+    if request.method == 'POST':
+        form = UserCreationForm(request.POST)
+        if form.is_valid():
+            user = form.save()
+            login(request, user, backend='django.contrib.auth.backends.ModelBackend')
+            return redirect('home')
+    else:
+        form = UserCreationForm()
+    return render(request, 'signup.html', {'form': form})
+
+def logout_view(request):
+    logout(request)
+    return redirect('home')
+
+# --- 2. NAVEGACIÓN PÚBLICA ---
+
 def home(request):
-    query = request.GET.get('q')
-    anuncios = Publicacion.objects.filter(vendido=False)
-    if query:
-        anuncios = anuncios.filter(Q(titulo__icontains=query) | Q(marca__icontains=query) | Q(modelo__icontains=query)).distinct()
-    return render(request, 'home.html', {'anuncios': anuncios.order_by('-fecha_creacion'), 'categorias': Categoria.objects.all()})
+    # LLAMADA AL CONTADOR
+    nodos_activos, trafico_total = obtener_conteo_red()
 
-# DETALLE DE UNIDAD
+    query = request.GET.get('q', '').strip()
+    # Tu lógica original intacta para que el menú no muera
+    categorias = Categoria.objects.all()
+    anuncios = Publicacion.objects.filter(vendido=False)
+
+    if query:
+        # Buscamos en título, marca O nombre de categoría (Tus filtros)
+        anuncios = anuncios.filter(
+            Q(titulo__icontains=query) | 
+            Q(marca__icontains=query) | 
+            Q(categoria__nombre__icontains=query)
+        ).distinct()
+
+    # Retorno con tus datos originales + las nuevas variables del contador
+    return render(request, 'home.html', {
+        'anuncios': anuncios.order_by('-fecha_creacion'),
+        'categorias': categorias, # Esto es lo que hace funcionar tus botones
+        'query': query,
+        # Estas son las variables para tu base.html o home.html
+        'online': nodos_activos if nodos_activos > 0 else 1,
+        'vistas': trafico_total
+    })
+
 def detalle_anuncio(request, pk):
     anuncio = get_object_or_404(Publicacion, pk=pk)
+    anuncio.vistas = (anuncio.vistas or 0) + 1
+    anuncio.save()
     return render(request, 'detalle.html', {'anuncio': anuncio, 'galeria': anuncio.fotos.all()})
 
-# GESTIÓN (CREAR/EDITAR)
+# --- 3. ESTADÍSTICAS (OTTO-MARKET) ---
+def stats_global(request):
+    total_db = Publicacion.objects.count()
+    
+    # CONTADOR ONLINE REAL (Últimos 5 min)
+    hace_5_min = timezone.now() - timedelta(minutes=5)
+    online_real = User.objects.filter(last_login__gte=hace_5_min).count()
+    
+    total_vistas = Publicacion.objects.aggregate(total=Sum('vistas'))['total'] or 0
+    categorias_reales = Categoria.objects.annotate(num=Count('publicacion'))
+
+    context = {
+        'total': total_db,
+        'activos': online_real, # Ahora sí son personas
+        'vistas': total_vistas,
+        'categorias': categorias_reales,
+    }
+    return render(request, 'stats.html', context)
+
 @login_required
-def gestionar_anuncio(request, pk=None):
-    anuncio = get_object_or_404(Publicacion, pk=pk, vendedor=request.user) if pk else None
+def dashboard(request):
+    mis_pubs = Publicacion.objects.filter(vendedor=request.user)
+    
+    stats = {
+        'unidades': mis_pubs.count(),
+        'vendidos': mis_pubs.filter(vendido=True).count(),
+        'ingresos': mis_pubs.filter(vendido=True).aggregate(Sum('precio'))['precio__sum'] or 0,
+        'vistas_totales': mis_pubs.aggregate(Sum('vistas'))['vistas__sum'] or 0,
+        'recientes': mis_pubs.order_by('-fecha_creacion')[:3],
+        'operadores_sistema': User.objects.count() 
+    }
+    return render(request, 'dashboard.html', {'stats': stats})
+
+# --- 4. GESTIÓN (TUS NOMBRES ORIGINALES) ---
+@login_required
+def vender_producto(request): # REGRESO AL NOMBRE QUE TIENES EN URLS
     if request.method == 'POST':
-        form = PublicacionForm(request.POST, request.FILES, instance=anuncio)
+        form = PublicacionForm(request.POST, request.FILES)
         if form.is_valid():
             nuevo = form.save(commit=False)
             nuevo.vendedor = request.user
             nuevo.save()
-            messages.success(request, "SISTEMA: DATA_GUARDADA")
+            messages.success(request, "UNIDAD_REGISTRADA")
+            return redirect('perfil')
+    else:
+        form = PublicacionForm()
+    return render(request, 'vender_hardware.html', {'form': form})
+
+@login_required
+def gestionar_anuncio(request, pk=None): # PARA EDITAR
+    anuncio = get_object_or_404(Publicacion, pk=pk, vendedor=request.user)
+    if request.method == 'POST':
+        form = PublicacionForm(request.POST, request.FILES, instance=anuncio)
+        if form.is_valid():
+            form.save()
             return redirect('perfil')
     else:
         form = PublicacionForm(instance=anuncio)
-    return render(request, 'vender_hardware.html', {'form': form, 'editando': pk is not None})
+    return render(request, 'vender_hardware.html', {'form': form, 'editando': True})
 
-# DASHBOARD REAL
-@login_required
-def dashboard(request):
-    mis_pubs = Publicacion.objects.filter(vendedor=request.user)
-    stats = {
-        'unidades': mis_pubs.count(),
-        'vendidos': mis_pubs.filter(vendido=True).count(),
-        'ingresos': sum(p.precio for p in mis_pubs.filter(vendido=True)),
-        'vistas_totales': 1540
-    }
-    return render(request, 'dashboard.html', {'stats': stats})
-
-# STATS GLOBALES
-def stats_global(request):
-    context = {
-        'total': Publicacion.objects.count(),
-        'categorias': Categoria.objects.annotate(num=Count('publicacion')),
-        'activos': Publicacion.objects.filter(vendido=False).count()
-    }
-    return render(request, 'stats.html', context)
-
-# PERFIL Y COMANDOS
 @login_required
 def perfil(request):
     return render(request, 'perfil.html', {'mis_anuncios': Publicacion.objects.filter(vendedor=request.user).order_by('-fecha_creacion')})
@@ -65,70 +144,87 @@ def eliminar_anuncio(request, pk):
     get_object_or_404(Publicacion, pk=pk, vendedor=request.user).delete()
     return redirect('perfil')
 
+from django.views.decorators.http import require_POST
+# Busca tu función marcar_vendido y cámbiala por esta:
 @login_required
-def marcar_vendido(request, pk):
-    anuncio = get_object_or_404(Publicacion, pk=pk, vendedor=request.user)
+def marcar_vendido(request, anuncio_id):
+    # Buscamos el anuncio que sea del usuario logueado
+    anuncio = get_object_or_404(Publicacion, id=anuncio_id, vendedor=request.user)
+    
+    # 1. Lo marcamos como vendido (Esto lo quita del Home automáticamente)
     anuncio.vendido = True
+    anuncio.save()
+    
+    # 2. Opcional: Si quieres que devuelva un OK para el JavaScript:
+    from django.http import JsonResponse
+    return JsonResponse({'status': 'ok', 'message': 'Vendido correctamente'})
+
+
+
+
+def obtener_conteo_red():
+    # 1. Calculamos operadores (logueados hace menos de 10 min)
+    limite = timezone.now() - timedelta(minutes=10)
+    online = User.objects.filter(last_login__gte=limite).count()
+    # 2. Sumamos las vistas de todos los anuncios
+    total_vistas = Publicacion.objects.aggregate(total=Sum('vistas'))['total'] or 0
+    return online, total_vistas
+    
+    
+
+@login_required
+def editar_perfil(request):
+    # El modelo usa 'usuario', no 'user'. Ojo ahí.
+    perfil, created = Perfil.objects.get_or_create(usuario=request.user)
+    
+    if request.method == 'POST':
+        # Asegurate de que PerfilForm esté importado arriba
+        form = PerfilForm(request.POST, request.FILES, instance=perfil)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "PERFIL_ACTUALIZADO")
+            return redirect('perfil')
+    else:
+        form = PerfilForm(instance=perfil)
+    
+    return render(request, 'editar_perfil.html', {'form': form})
+
+
+
+def reactivar_anuncio(request, anuncio_id):
+    anuncio = get_object_or_404(Publicacion, id=anuncio_id)
+    anuncio.vendido = False
     anuncio.save()
     return redirect('perfil')
 
 
-
-from django.contrib.auth.decorators import login_required
-from django.shortcuts import render, redirect
-from .forms import PublicacionForm
-
-@login_required # ESTO ES EL ESCUDO
-def vender_producto(request):
-    if request.method == 'POST':
-        form = PublicacionForm(request.POST, request.FILES)
-        if form.is_valid():
-            nuevo_anuncio = form.save(commit=False)
-            nuevo_anuncio.vendedor = request.user
-            nuevo_anuncio.save()
-            return redirect('perfil')
-    else:
-        form = PublicacionForm()
-    
-    # Olvidate de 'form_generico'. Vamos a usar uno específico:
-    return render(request, 'vender_hardware.html', {'form': form})
-
-
-
-from django.shortcuts import render, redirect
-from django.contrib.auth import authenticate, login, logout
-from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
+from django.core.management import call_command
+from django.http import HttpResponse
+from io import StringIO
 from django.contrib import messages
+from django.shortcuts import redirect
 
-# VISTA DE LOGIN
-def login_view(request):
-    if request.method == 'POST':
-        form = AuthenticationForm(request, data=request.POST)
-        if form.is_valid():
-            username = form.cleaned_data.get('username')
-            password = form.cleaned_data.get('password')
-            user = authenticate(username=username, password=password)
-            if user is not None:
-                login(request, user)
-                return redirect('home')
-    else:
-        form = AuthenticationForm()
-    return render(request, 'login.html', {'form': form})
+# LA QUE YA TENEMOS PARA BAJAR EL ARCHIVO
+def descargar_backup(request):
+    output = StringIO()
+    call_command('dumpdata', indent=2, stdout=output)
+    response = HttpResponse(output.getvalue(), content_type="application/json")
+    response['Content-Disposition'] = 'attachment; filename="backup_datos_otto.json"'
+    return response
 
-# VISTA DE REGISTRO
-def registro_view(request):
-    if request.method == 'POST':
-        form = UserCreationForm(request.POST)
-        if form.is_valid():
-            user = form.save()
-            # AGREGAMOS EL BACKEND AQUÍ PARA QUE NO DE ERROR
-            login(request, user, backend='django.contrib.auth.backends.ModelBackend')
-            return redirect('home')
-    else:
-        form = UserCreationForm()
-    return render(request, 'signup.html', {'form': form})
-
-# VISTA DE LOGOUT
-def logout_view(request):
-    logout(request)
-    return redirect('home')
+# LA NUEVA PARA SUBIR EL ARCHIVO (RESTAURAR)
+def restaurar_backup(request):
+    if request.method == 'POST' and request.FILES.get('backup_file'):
+        backup_file = request.FILES['backup_file']
+        # Guardamos el archivo temporalmente para procesarlo
+        with open('temp_backup.json', 'wb+') as destination:
+            for chunk in backup_file.chunks():
+                destination.write(chunk)
+        
+        try:
+            call_command('loaddata', 'temp_backup.json')
+            messages.success(request, "NÚCLEO REESTABLECIDO: DATOS CARGADOS [✅]")
+        except Exception as e:
+            messages.error(request, f"ERROR EN CARGA: {e}")
+            
+    return redirect('dashboard') # O a la página que quieras

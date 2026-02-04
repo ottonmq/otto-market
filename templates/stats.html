@@ -1,127 +1,154 @@
 {% extends "base.html" %}
-
 {% block content %}
 <div class="container py-4">
-    <div class="d-flex align-items-center mb-5" style="border-left: 4px solid #00f2ff; padding-left: 20px;">
-        <div>
-            <h2 class="text-white mb-0" style="letter-spacing: 3px; font-weight: 800;">GLOBAL_MARKET_STATS</h2>
-            <div class="d-flex align-items-center">
-                <div class="status-dot-blink me-2" style="width: 8px; height: 8px; background: #00f2ff; border-radius: 50%; box-shadow: 0 0 10px #00f2ff;"></div>
-                <small style="color: #00f2ff; font-family: monospace;">ESCANEANDO_BASE_DE_DATOS_CENTRAL...</small>
+    <div class="row mb-5 align-items-center">
+        <div class="col-md-4 d-flex justify-content-center">
+            <div class="clock-container">
+                <div class="clock">
+                    <div class="hand hour" id="hour"></div>
+                    <div class="hand minute" id="minute"></div>
+                    <div class="hand second" id="second"></div>
+                    <div class="center-dot"></div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-8">
+            <h2 class="text-white mb-0 fw-900" style="letter-spacing:6px; font-weight:900; text-shadow: 0 0 15px rgba(0,242,255,0.4);">GLOBAL_MARKET</h2>
+            <p class="text-info fw-bold mb-0" id="digital-date" style="letter-spacing: 2px;">{{ now|date:"l, Y-m-d"|upper }}</p>
+            <p class="text-info opacity-75 small" id="digital-clock">--:--:-- PM CST</p>
+        </div>
+    </div>
+
+    <div class="row g-3 mb-5">
+        <div class="col-md-4 col-6">
+            <div class="otto-card-premium">
+                <div class="scanner-line"></div>
+                <div class="otto-card-content">
+                    <small class="text-muted fw-bold d-block" style="font-size:10px; letter-spacing: 1px;">TOTAL_ANUNCIOS</small>
+                    <div class="d-flex align-items-center gap-2">
+                        <i class="bi bi- megaphone-fill text-info"></i>
+                        <h2 class="text-white fw-bold mb-0">{{ total|default:"0" }}</h2>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4 col-6">
+            <div class="otto-card-premium">
+                <div class="scanner-line"></div>
+                <div class="otto-card-content">
+                    <small class="text-muted fw-bold d-block" style="font-size:10px; letter-spacing: 1px;">OPERACIONES_VENDIDAS</small>
+                    <div class="d-flex align-items-center gap-2">
+                        <i class="bi bi-cart-check-fill text-info"></i>
+                        <h2 class="text-white fw-bold mb-0">{{ vendidos|default:"0" }}</h2>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 
-    <div class="row g-4 mb-5">
-        <div class="col-md-4">
-            <div class="stats-card-cyber">
-                <small class="text-muted">TOTAL_UNIDADES_ACTIVAS</small>
-                <div class="d-flex align-items-baseline">
-                    <h2 class="display-5 fw-bold text-white mb-0">842</h2>
-                    <span class="ms-2 text-info" style="font-size: 12px;">+14% HOY</span>
-                </div>
-                <div class="scan-line-mini"></div>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="stats-card-cyber border-accent">
-                <small class="text-muted">OPERADORES_EN_LÍNEA</small>
-                <h2 class="display-5 fw-bold text-white mb-0">158</h2>
-                <div class="progress mt-2" style="height: 4px; background: #111;">
-                    <div class="progress-bar bg-info" style="width: 65%;"></div>
+    <div class="otto-card-premium p-4">
+        <div class="scanner-line"></div>
+        <h5 class="text-white mb-4 fw-bold" style="letter-spacing:3px;">
+            <span class="status-dot-blink"></span> DISTRIBUCIÓN_GLOBAL
+        </h5>
+        <div class="row align-items-center">
+            <div class="col-md-6 mb-4 d-flex justify-content-center">
+                <div style="width:100%;max-width:280px;height:280px;">
+                    <canvas id="donutChart"></canvas>
                 </div>
             </div>
-        </div>
-        <div class="col-md-4">
-            <div class="stats-card-cyber">
-                <small class="text-muted">VOLUMEN_TRANSACCIONES</small>
-                <h2 class="display-5 fw-bold text-white mb-0">$1.2M</h2>
-                <small class="text-success" style="font-size: 11px;">ESTATUS: ALTA_DEMANDA</small>
+            <div class="col-md-6 mb-4">
+                <small class="text-info d-block mb-3 fw-bold text-center" style="letter-spacing: 2px;">TENDENCIAS_GLOBALES</small>
+                <div style="width:100%;height:220px;">
+                    <canvas id="radarChart"></canvas>
+                </div>
             </div>
         </div>
     </div>
 
-    <div class="row">
-        <div class="col-lg-8">
-            <div class="main-chart-container p-4">
-                <h6 class="text-white mb-4"><i class="bi bi-graph-up me-2"></i> FLUJO_DE_VENTAS_7D (GLOBAL)</h6>
-                <canvas id="globalMarketChart" style="height: 300px;"></canvas>
+    <div class="otto-card-premium py-2 px-3 mt-4" style="border-radius: 15px;">
+        <div class="d-flex align-items-center justify-content-between">
+            <div class="d-flex align-items-center text-white" style="font-family: monospace; font-size: 11px; letter-spacing: 2px;">
+                <i class="bi bi-info-circle me-2 text-info"></i> DATOS_SINC_RED_OK (60S)
             </div>
-        </div>
-        <div class="col-lg-4">
-            <div class="side-panel-cyber p-4">
-                <h6 class="text-info mb-3">TOP_CATEGORÍAS</h6>
-                <ul class="list-unstyled">
-                    <li class="d-flex justify-content-between mb-3 border-bottom border-dark pb-2">
-                        <span class="text-muted">VEHÍCULOS</span>
-                        <span class="text-white fw-bold">45%</span>
-                    </li>
-                    <li class="d-flex justify-content-between mb-3 border-bottom border-dark pb-2">
-                        <span class="text-muted">INMUEBLES</span>
-                        <span class="text-white fw-bold">32%</span>
-                    </li>
-                    <li class="d-flex justify-content-between mb-3 border-bottom border-dark pb-2">
-                        <span class="text-muted">TECNOLOGÍA</span>
-                        <span class="text-white fw-bold">23%</span>
-                    </li>
-                </ul>
-                <div class="alert alert-info bg-dark border-info mt-4" style="font-size: 11px; color: #00f2ff;">
-                    <i class="bi bi-info-circle me-1"></i> NOTA: Los datos se actualizan cada ciclo de sincronización de red (60s).
-                </div>
-            </div>
+            <div class="status-dot-blink"></div>
         </div>
     </div>
 </div>
 
 <style>
-    .stats-card-cyber {
+    body { background:#000!important; font-family:'Courier New',monospace; color: #fff; }
+
+    /* ESTILO ESTÁNDAR OTTO-CARD-PREMIUM */
+    .otto-card-premium {
         background: #0a0a0a;
-        border: 1px solid #1a1a1a;
-        padding: 25px;
-        border-radius: 4px;
+        border: 1px solid #00f2ff; /* Borde cian neón */
+        border-radius: 25px;       /* Curvatura premium */
         position: relative;
         overflow: hidden;
+        box-shadow: 0 0 15px rgba(0, 242, 255, 0.15);
+        padding: 20px;
+        transition: transform 0.3s ease;
     }
-    .stats-card-cyber.border-accent { border-top: 3px solid #00f2ff; }
-    .main-chart-container { background: #0a0a0a; border: 1px solid #1a1a1a; border-radius: 4px; }
-    .side-panel-cyber { background: #050505; border: 1px solid #1a1a1a; height: 100%; }
-    
-    @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
-    .status-dot-blink { animation: blink 1.5s infinite; }
-    
-    .scan-line-mini {
+    .otto-card-premium:hover { transform: translateY(-5px); }
+
+    /* ESCÁNER LÁSER VERTICAL */
+    .scanner-line {
         position: absolute;
-        bottom: 0; left: 0; width: 100%; height: 2px;
+        width: 100%;
+        height: 2px;
         background: linear-gradient(90deg, transparent, #00f2ff, transparent);
-        animation: scan 3s linear infinite;
+        top: -2px;
+        left: 0;
+        animation: scan-vertical 4s linear infinite;
+        z-index: 5;
+        opacity: 0.6;
     }
-    @keyframes scan { 0% { transform: translateX(-100%); } 100% { transform: translateX(100%); } }
+
+    @keyframes scan-vertical {
+        0%, 100% { top: 0%; opacity: 0; }
+        50% { top: 100%; opacity: 1; }
+    }
+
+    /* RELOJ ANALÓGICO */
+    .clock { width:110px; height:110px; border:3px solid #00f2ff; border-radius:50%; position:relative; box-shadow:0 0 20px rgba(0,242,255,0.4); background: #050505; }
+    .hand { position:absolute; bottom:50%; left:50%; transform-origin:bottom; background:#00f2ff; transform:translateX(-50%); border-radius: 10px; }
+    .hour { width:4px; height:30px; } .minute { width:3px; height:45px; } 
+    .second { width:1px; height:50px; background:#f05; box-shadow:0 0 8px #f05; }
+    .center-dot { position:absolute; top:50%; left:50%; width:8px; height:8px; background:#fff; border-radius:50%; transform:translate(-50%,-50%); box-shadow: 0 0 5px #fff; }
+
+    /* DOT PARPADEANTE */
+    .status-dot-blink { display:inline-block; width:8px; height:8px; background:#00f2ff; border-radius:50%; animation:blink 1.5s infinite; }
+    @keyframes blink { 0%,100% { opacity:1; box-shadow:0 0 10px #00f2ff; } 50% { opacity:.2; } }
 </style>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-    const ctxGlobal = document.getElementById('globalMarketChart').getContext('2d');
-    new Chart(ctxGlobal, {
-        type: 'bar',
-        data: {
-            labels: ['LUN', 'MAR', 'MIE', 'JUE', 'VIE', 'SAB', 'DOM'],
-            datasets: [{
-                label: 'PUBLICACIONES_NUEVAS',
-                data: [45, 62, 55, 80, 120, 150, 95],
-                backgroundColor: 'rgba(0, 242, 255, 0.6)',
-                borderColor: '#00f2ff',
-                borderWidth: 1
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            scales: {
-                y: { grid: { color: '#1a1a1a' }, ticks: { color: '#666' } },
-                x: { grid: { display: false }, ticks: { color: '#666' } }
-            },
-            plugins: { legend: { display: false } }
-        }
+    // Lógica del Reloj
+    function updateClock() {
+        const n = new Date();
+        document.getElementById('second').style.transform = `translateX(-50%) rotate(${n.getSeconds()*6}deg)`;
+        document.getElementById('minute').style.transform = `translateX(-50%) rotate(${n.getMinutes()*6}deg)`;
+        document.getElementById('hour').style.transform = `translateX(-50%) rotate(${(n.getHours()%12)*30+n.getMinutes()/2}deg)`;
+        document.getElementById('digital-clock').innerText = n.toLocaleTimeString() + " CST";
+    }
+    setInterval(updateClock, 1000); updateClock();
+
+    // Gráficos con colores Neon
+    const lbs = [{% for c in categorias %}"{{ c.nombre|upper }}"{% if not forloop.last %},{% endif %}{% endfor %}];
+    const dta = [{% for c in categorias %}{{ c.num }}{% if not forloop.last %},{% endif %}{% endfor %}];
+
+    new Chart(document.getElementById('donutChart'), {
+        type: 'doughnut',
+        data: { labels: lbs, datasets: [{ data: dta, backgroundColor: ['#0055ff','#00f2ff','#7000ff','#ff0055','#00ffaa'], borderColor:'#0a0a0a', borderWidth:5 }] },
+        options: { responsive:true, maintainAspectRatio:false, cutout:'75%', plugins:{legend:{position:'bottom',labels:{color:'#888',font:{size:9, family:'monospace'}}}} }
+    });
+
+    new Chart(document.getElementById('radarChart'), {
+        type: 'radar',
+        data: { labels: lbs, datasets: [{ label:'SISTEMA', data: dta, borderColor:'#00f2ff', backgroundColor:'rgba(0,242,255,0.1)', borderWidth:2, pointBackgroundColor:'#00f2ff' }] },
+        options: { responsive:true, maintainAspectRatio:false, scales:{r:{grid:{color:'#222'},angleLines:{color:'#222'},ticks:{display:false},pointLabels:{color:'#00f2ff',font:{size:9, family:'monospace'}}}}, plugins:{legend:{display:false}} }
     });
 </script>
 {% endblock %}

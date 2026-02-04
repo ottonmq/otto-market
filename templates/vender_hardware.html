@@ -1,57 +1,178 @@
 {% extends "base.html" %}
 {% block content %}
-<div class="container mt-4 mb-5">
-    <div class="card bg-dark border-info shadow-neon" style="border-radius: 0;">
-        <div class="card-header border-info bg-black text-center py-3">
-            <h2 class="text-info fw-bold" style="letter-spacing: 5px;">
-                [ REGISTRO DE PRODUCTO ]
-            </h2>
-        </div>
-        <div class="card-body p-4">
-            <form method="POST" enctype="multipart/form-data">
-                {% csrf_token %}
-                
-                <div class="row text-white">
-                    {% for field in form %}
-                    <div class="col-md-6 mb-4">
-                        <label class="text-info small fw-bold mb-2">
-                            > {{ field.label|upper }}
-                        </label>
-                        <div class="cyber-input">
-                            {{ field }}
-                        </div>
-                        {% if field.errors %}
-                            <div class="text-danger x-small mt-1">!! ERROR: {{ field.errors|striptags }}</div>
-                        {% endif %}
-                    </div>
-                    {% endfor %}
-                </div>
-
-                <div class="mt-4 border-top border-secondary pt-4">
-                    <button type="submit" class="btn btn-info w-100 py-3 fw-bold shadow-neon text-uppercase">
-                        Inyectar datos en el mercado
-                    </button>
-                    <a href="{% url 'perfil' %}" class="btn btn-outline-secondary w-100 mt-3 py-2">
-                        Abortar operación
-                    </a>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
 
 <style>
-    /* Estilo para que los inputs no se vean normales */
+    body { background-color: #000 !important; color: #fff !important; font-family: monospace; }
+
+    .market-chassis {
+        max-width: 450px;
+        margin: 20px auto;
+        background: #000;
+        border: 1px solid #1a1a1a;
+        padding: 20px;
+        box-shadow: 0 0 20px rgba(0, 242, 255, 0.05);
+    }
+
+    .status-bar {
+        border-bottom: 1px solid #00f2ff;
+        padding-bottom: 10px;
+        margin-bottom: 20px;
+        color: #00f2ff;
+        text-align: center;
+        font-weight: bold;
+        letter-spacing: 2px;
+    }
+
+    /* ESCÁNER DE OPERADOR */
+    .operator-scanner {
+        width: 150px; height: 150px;
+        margin: 0 auto 30px;
+        border: 2px solid #1a1a1a;
+        position: relative;
+        overflow: hidden;
+        background: #050505;
+    }
+
+    .operator-scanner img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+    .laser-line {
+        position: absolute; width: 100%; height: 2px;
+        background: #00f2ff; top: 0;
+        animation: scan-move 3s linear infinite;
+        z-index: 10;
+        box-shadow: 0 0 10px #00f2ff;
+    }
+    @keyframes scan-move { 0% { top: 0; } 100% { top: 100%; } }
+
+    /* LABELS Y CAMPOS LIMPIOS */
+    .form-unit { margin-bottom: 25px; position: relative; }
+
+    label { 
+        color: #00f2ff !important; 
+        font-size: 11px; 
+        display: block; 
+        margin-bottom: 10px; 
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    /* ELIMINACIÓN DE RAYAS Y BORDES BASURA */
     input, select, textarea {
-        background-color: #000 !important;
-        border: 1px solid #0dcaf0 !important;
-        color: #0dcaf0 !important;
+        width: 100% !important;
+        background: #0a0a0a !important;
+        border: none !important; 
+        border-left: 2px solid #333 !important; /* Estilo barra lateral */
+        color: #ffffff !important;
+        padding: 12px 15px !important;
+        outline: none !important;
+        box-shadow: none !important;
+        transition: all 0.3s ease;
+    }
+
+    input:focus, select:focus, textarea:focus { 
+        border-left: 2px solid #00f2ff !important;
+        background: #0f0f0f !important;
+    }
+
+    /* OCULTAR TEXTOS DE DJANGO (Actualmente, Limpiar, etc) */
+    .form-unit br, .form-unit a { display: none !important; }
+    
+    input[type="checkbox"] { width: auto !important; margin-right: 10px !important; }
+
+    /* BOTÓN DE INYECCIÓN */
+    .btn-inject {
         width: 100%;
-        padding: 10px;
+        background: #00f2ff;
+        color: #000;
+        border: none;
+        padding: 18px;
+        font-weight: bold;
+        text-transform: uppercase;
+        cursor: pointer;
+        font-family: 'Orbitron', sans-serif;
+        box-shadow: 0 0 15px rgba(0, 242, 255, 0.3);
     }
-    input:focus {
-        box-shadow: 0 0 10px #0dcaf0 !important;
-        outline: none;
-    }
+    .btn-inject:hover { background: #fff; box-shadow: 0 0 20px #00f2ff; }
 </style>
+
+<div class="market-chassis">
+    <div class="status-bar">[ PUBLICACION ]</div>
+        
+          
+           {% if user.perfil.nombre %}
+                {{ user.perfil.nombre }}
+               {% else %}
+                {{ user.username }}
+             {% endif %}     
+                 
+    <div class="operator-scanner">
+        <div class="laser-line"></div>
+        {% if user.perfil.foto_perfil %}
+            <img src="{{ user.perfil.foto_perfil.url }}" id="preview">
+                  
+        {% else %}
+            <div id="no-data" style="text-align:center; padding-top:60px; font-size:10px; color:#333;">NO_SIGNAL</div>
+        {% endif %}
+            
+   
+                  
+    </div>
+
+    <form method="POST" enctype="multipart/form-data">
+        {% csrf_token %}
+        
+        {% for field in form %}
+        <div class="form-unit">
+            <label>// {{ field.label|upper }}</label>
+            {{ field }}
+        </div>
+        {% endfor %}
+
+        <button type="submit" class="btn-inject">EJECUTAR_INYECCIÓN [✓]</button>
+    </form>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        // LIMPIEZA DE INPUTS FILE (QUITA LAS RAYAS Y LINKS DE DJANGO)
+        const inputs = document.querySelectorAll('.form-unit');
+        inputs.forEach(unit => {
+            // Buscamos si hay texto suelto como "Actualmente:" o "Cambiar:" y lo borramos
+            unit.childNodes.forEach(node => {
+                if (node.nodeType === 3) { // 3 es un nodo de texto
+                    node.textContent = ""; 
+                }
+            });
+        });
+
+        // VISTA PREVIA INSTANTÁNEA (Para que no tengas que recargar)
+        const fileInput = document.querySelector('input[type="file"]');
+        if (fileInput) {
+            fileInput.addEventListener('change', function() {
+                const file = this.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        const img = document.querySelector('.operator-scanner img');
+                        if (img) {
+                            img.src = e.target.result;
+                        } else {
+                            // Si no había imagen, la creamos
+                            const div = document.getElementById('no-data');
+                            if (div) div.style.display = 'none';
+                            const newImg = document.createElement('img');
+                            newImg.src = e.target.result;
+                            newImg.style.width = "100%";
+                            newImg.style.height = "100%";
+                            newImg.style.objectFit = "cover";
+                            document.querySelector('.operator-scanner').appendChild(newImg);
+                        }
+                    }
+                    reader.readAsDataURL(file);
+                }
+            });
+        }
+    });
+</script>
+
 {% endblock %}
