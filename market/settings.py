@@ -10,16 +10,21 @@ SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-wskp$fl8&frfe3=uk^ue+
 DEBUG = os.environ.get('DEBUG', 'False') == 'True'
 ALLOWED_HOSTS = ['*']
 
-# --- 3. APPS (SISTEMA + OTTO-MARKET) ---
+# --- 3. APPS (SISTEMA + CLOUDINARY + OTTO-MARKET) ---
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
-    'whitenoise.runserver_nostatic',
+    
+    # Cloudinary debe ir ANTES de staticfiles
+    'cloudinary_storage',
     'django.contrib.staticfiles',
+    'cloudinary',
+    
     'django.contrib.sites',
+    'whitenoise.runserver_nostatic',
     
     # Tu App
     'marketapp',
@@ -66,8 +71,7 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'market.wsgi.application'
 
-# --- 6. BASE DE DATOS (CONEXIÓN LUSH A RENDER) ---
-# Si detecta DATABASE_URL en Render, usa Postgres. Si no, usa SQLite local.
+# --- 6. BASE DE DATOS ---
 DATABASES = {
     'default': dj_database_url.config(
         default=os.environ.get('DATABASE_URL', f'sqlite:///{BASE_DIR / "db.sqlite3"}'),
@@ -81,13 +85,21 @@ TIME_ZONE = 'UTC'
 USE_I18N = True
 USE_TZ = True
 
-# --- 8. STATIC & MEDIA ---
+# --- 8. STATIC & MEDIA (ALMACENAMIENTO PROFESIONAL) ---
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [BASE_DIR / 'static']
 STATIC_ROOT = BASE_DIR / 'staticfiles'
-
-# ALMACENAMIENTO DE ESTÁTICOS PARA PRODUCCIÓN
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
+# Configuración Maestra de Cloudinary para Fotos
+CLOUDINARY_STORAGE = {
+    'CLOUD_NAME': os.environ.get('CLOUDINARY_CLOUD_NAME'),
+    'API_KEY': os.environ.get('CLOUDINARY_API_KEY'),
+    'API_SECRET': os.environ.get('CLOUDINARY_API_SECRET'),
+}
+
+# Esto redirige todas las subidas de fotos a la nube
+DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
@@ -114,7 +126,6 @@ SOCIALACCOUNT_EMAIL_VERIFICATION = "none"
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
-# PARCHE PARA LOCKS EN TERMUX
 try:
     from django.core.files import locks
     locks.lock = lambda f, flags: True
