@@ -245,32 +245,37 @@ def bot_consulta(request):
     if request.method == 'POST':
         try:
             data = json.loads(request.body)
-            # Aceptamos 'texto' (web) o 'body' (estándar de algunos webhooks)
             texto = data.get('texto', data.get('body', '')).lower().strip()
             
             if not texto:
                 return JsonResponse({'respuesta': "🤖 [SISTEMA]: Esperando comando..."})
 
-            # Lógica de búsqueda avanzada en Otto-Market
+            # Búsqueda avanzada: Título, Marca o Categoría
             productos = Publicacion.objects.filter(
-                Q(titulo__icontains=texto) | Q(marca__icontains=texto),
+                Q(titulo__icontains=texto) | 
+                Q(marca__icontains=texto) |
+                Q(categoria__nombre__icontains=texto), # Conexión con relación de categoría
                 vendido=False
-            )[:3] # Limitamos a 3 para no saturar el chat
+            )[:3]
 
             if productos:
-                res = "⚡ **OTTO-MARKET // RESULTADOS** ⚡\n"
+                res = "⚡ **OTTO-MARKET // SUMINISTROS** ⚡<br>"
                 for p in productos:
-                    res += f"\n📦 {p.titulo.upper()}\n💰 PRECIO: ${p.precio}\n🔹 ESTADO: DISPONIBLE\n"
-                res += "\n[SISTEMA]: Datos extraídos con éxito."
+                    # INYECCIÓN VISUAL DE CLOUDINARY
+                    if p.imagen:
+                        res += f'<img src="{p.imagen.url}" style="width:100%; border-radius:15px; border:1px solid #00f3ff; margin:10px 0; box-shadow: 0 0 10px #00f3ff44;">'
+                    
+                    res += f"📦 **{p.titulo.upper()}**<br>💰 PRECIO: ${p.precio}<br>🔹 MARCA: {p.marca}<br>"
+                    res += "────────────────────<br>"
+                res += "<br> [SISTEMA]: Datos extraídos con éxito."
             else:
-                res = "⚠️ [ERROR]: No se encontraron suministros con ese nombre en la base de datos."
+                res = "⚠️ [ERROR]: No se detectan suministros. Intenta con otra palabra clave."
                 
             return JsonResponse({'respuesta': res})
         except Exception as e:
             return JsonResponse({'respuesta': "💀 [CRITICAL_ERROR]: Fallo en la matriz de datos."}, status=400)
     
     return JsonResponse({'error': 'Método no permitido'}, status=405)
-
 
 
 def pagina_bot(request):

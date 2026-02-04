@@ -6,30 +6,31 @@ from pathlib import Path
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # --- 2. SEGURIDAD ---
-SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-wskp$fl8&frfe3=uk^ue+$5*(*sjpvmd#5f!2ac$k@y1g@r1q0')
-# En local forzamos DEBUG True si no hay variable de entorno para ver errores reales
+SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-otto-task-premium-key-2026')
 DEBUG = os.environ.get('DEBUG', 'True') == 'True'
-ALLOWED_HOSTS = ['*']
 
-# --- 3. APPS (SISTEMA + CLOUDINARY + OTTO-MARKET) ---
+# IMPORTANTE: Para Render y el Bot
+ALLOWED_HOSTS = ['*', '.render.com'] 
+CSRF_TRUSTED_ORIGINS = ['https://*.render.com'] # Evita errores 403 en el Bot
+
+# --- 3. APPS (SISTEMA + CLOUDINARY + MARKET) ---
 INSTALLED_APPS = [
+    'cloudinary_storage', # Siempre antes de staticfiles
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
-    
-    # Almacenamiento en la nube (Cloudinary)
-    'cloudinary_storage',
     'django.contrib.staticfiles',
+    
+    # Cloudinary Core
     'cloudinary',
     
     # Módulos de visibilidad y red
     'django.contrib.sites',
     'django.contrib.sitemaps',
-    'whitenoise.runserver_nostatic',
     
-    # Tu App de mercado
+    # Tu App de mercado (Asegúrate que el nombre sea correcto)
     'marketapp',
     
     # Autenticación Cyberpunk (Allauth)
@@ -39,10 +40,10 @@ INSTALLED_APPS = [
     'allauth.socialaccount.providers.google', 
 ]
 
-# --- 4. MIDDLEWARE (ORDEN CRÍTICO) ---
+# --- 4. MIDDLEWARE (ORDEN CRÍTICO PARA WHITENOISE) ---
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware', # Para que Render sirva el CSS/JS
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -74,7 +75,7 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'market.wsgi.application'
 
-# --- 6. BASE DE DATOS (HÍBRIDA: SQLITE LOCAL / POSTGRES WEB) ---
+# --- 6. BASE DE DATOS (HÍBRIDA) ---
 DATABASES = {
     'default': dj_database_url.config(
         default=os.environ.get('DATABASE_URL', f'sqlite:///{BASE_DIR / "db.sqlite3"}'),
@@ -88,31 +89,31 @@ TIME_ZONE = 'UTC'
 USE_I18N = True
 USE_TZ = True
 
-# --- 8. STATIC & MEDIA ---
+# --- 8. STATIC & MEDIA (OPTIMIZADO PARA CLOUDINARY) ---
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [BASE_DIR / 'static']
 STATIC_ROOT = BASE_DIR / 'staticfiles'
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
-# Cloudinary Config
+# Almacenamiento Dual: Estáticos en WhiteNoise, Media en Cloudinary
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
+
 CLOUDINARY_STORAGE = {
     'CLOUD_NAME': os.environ.get('CLOUDINARY_CLOUD_NAME'),
     'API_KEY': os.environ.get('CLOUDINARY_API_KEY'),
     'API_SECRET': os.environ.get('CLOUDINARY_API_SECRET'),
 }
 
-DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
 MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+MEDIA_ROOT = BASE_DIR / 'media'
 
 # --- 9. CONFIGURACIÓN ALLAUTH & SITES ---
-SITE_ID = 1  # INDISPENSABLE para sitemaps y allauth
+SITE_ID = 1
 AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',
     'allauth.account.auth_backends.AuthenticationBackend',
 ]
 
-# Ajustes de Login solicitados
 SOCIALACCOUNT_LOGIN_ON_GET = True
 ACCOUNT_LOGIN_ON_GET = True
 SOCIALACCOUNT_AUTO_SIGNUP = True 
@@ -122,17 +123,6 @@ ACCOUNT_USERNAME_REQUIRED = False
 LOGIN_REDIRECT_URL = 'perfil'
 LOGOUT_REDIRECT_URL = 'home'
 ACCOUNT_EMAIL_VERIFICATION = "none"
-SOCIALACCOUNT_EMAIL_VERIFICATION = "none"
 
-# --- 10. PARCHES Y DEFAULT FIELDS ---
+# --- 10. DEFAULTS ---
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
-
-
-# Parche para manejo de archivos en algunos entornos
-try:
-    from django.core.files import locks
-    locks.lock = lambda f, flags: True
-    locks.unlock = lambda f: True
-except (ImportError, AttributeError):
-    pass
