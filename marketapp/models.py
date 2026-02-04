@@ -72,6 +72,17 @@ class Publicacion(models.Model):
         estado = 'VENDIDO' if self.vendido else 'ACTIVO'
         return f"{self.titulo} - {estado}"
 
+      
+    def get_absolute_url(self):
+        from django.urls import reverse
+        # El sitemap usará este enlace para decirle a Google dónde está cada anuncio
+        return reverse('detalle', args=[str(self.id)])
+
+
+
+
+
+
 # 4. GALERÍA ADICIONAL
 class Imagen(models.Model):
     publicacion = models.ForeignKey(Publicacion, on_delete=models.CASCADE, related_name='fotos')
