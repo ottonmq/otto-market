@@ -6,8 +6,8 @@ from pathlib import Path
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # --- 2. SEGURIDAD ---
-SECRET_KEY = 'django-insecure-wskp$fl8&frfe3=uk^ue+$5*(*sjpvmd#5f!2ac$k@y1g@r1q0'
-DEBUG = False  # MODO PRODUCCIÓN ACTIVADO
+SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-wskp$fl8&frfe3=uk^ue+$5*(*sjpvmd#5f!2ac$k@y1g@r1q0')
+DEBUG = os.environ.get('DEBUG', 'False') == 'True'
 ALLOWED_HOSTS = ['*']
 
 # --- 3. APPS (SISTEMA + OTTO-MARKET) ---
@@ -17,7 +17,7 @@ INSTALLED_APPS = [
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
-    'whitenoise.runserver_nostatic',  # AYUDA A WHITENOISE EN DESARROLLO
+    'whitenoise.runserver_nostatic',
     'django.contrib.staticfiles',
     'django.contrib.sites',
     
@@ -34,7 +34,7 @@ INSTALLED_APPS = [
 # --- 4. MIDDLEWARE (ORDEN CRÍTICO) ---
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware',  # <--- INYECTADO AQUÍ PARA ESTÁTICOS
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -66,10 +66,11 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'market.wsgi.application'
 
-# --- 6. BASE DE DATOS (CONEXIÓN AUTOMÁTICA RENDER) ---
+# --- 6. BASE DE DATOS (CONEXIÓN LUSH A RENDER) ---
+# Si detecta DATABASE_URL en Render, usa Postgres. Si no, usa SQLite local.
 DATABASES = {
     'default': dj_database_url.config(
-        default=f'sqlite:///{BASE_DIR / "db.sqlite3"}',
+        default=os.environ.get('DATABASE_URL', f'sqlite:///{BASE_DIR / "db.sqlite3"}'),
         conn_max_age=600
     )
 }
@@ -98,42 +99,25 @@ AUTHENTICATION_BACKENDS = [
     'allauth.account.auth_backends.AuthenticationBackend',
 ]
 
-# Flujo de entrada directa sin pantallas blancas
 SOCIALACCOUNT_LOGIN_ON_GET = True
 ACCOUNT_LOGIN_ON_GET = True
 SOCIALACCOUNT_AUTO_SIGNUP = True 
-SOCIALACCOUNT_ADAPTER = 'allauth.socialaccount.adapter.DefaultSocialAccountAdapter'
-SOCIALACCOUNT_QUERY_EMAIL = True
-SOCIALACCOUNT_EMAIL_REQUIRED = True
-SOCIALACCOUNT_EMAIL_VERIFICATION = "none"
-ACCOUNT_EMAIL_VERIFICATION = "none"
-
-# Autenticación moderna
 ACCOUNT_AUTHENTICATION_METHOD = 'email'
 ACCOUNT_EMAIL_REQUIRED = True
 ACCOUNT_USERNAME_REQUIRED = False
-
-# Redirecciones
 LOGIN_REDIRECT_URL = 'perfil'
 LOGOUT_REDIRECT_URL = 'home'
-
-SOCIALACCOUNT_PROVIDERS = {
-    'google': {
-        'SCOPE': ['profile', 'email'],
-        'AUTH_PARAMS': {'access_type': 'online'}
-    }
-}
+ACCOUNT_EMAIL_VERIFICATION = "none"
+SOCIALACCOUNT_EMAIL_VERIFICATION = "none"
 
 # --- 10. PARCHES Y DEFAULT FIELDS ---
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
-# PARCHE PARA LOCKS EN SISTEMAS MÓVILES/TERMUX
+# PARCHE PARA LOCKS EN TERMUX
 try:
     from django.core.files import locks
     locks.lock = lambda f, flags: True
     locks.unlock = lambda f: True
 except (ImportError, AttributeError):
     pass
-
-FILE_UPLOAD_PERMISSIONS = 0o644
