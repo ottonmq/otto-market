@@ -1,4 +1,5 @@
 import os
+import dj_database_url
 from pathlib import Path
 
 # --- 1. RUTAS BASE ---
@@ -6,16 +7,17 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # --- 2. SEGURIDAD ---
 SECRET_KEY = 'django-insecure-wskp$fl8&frfe3=uk^ue+$5*(*sjpvmd#5f!2ac$k@y1g@r1q0'
-DEBUG = True
+DEBUG = False  # MODO PRODUCCIÓN ACTIVADO
 ALLOWED_HOSTS = ['*']
 
-# --- 3. APPS (SISTEMA + OTTO-TASK) ---
+# --- 3. APPS (SISTEMA + OTTO-MARKET) ---
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
+    'whitenoise.runserver_nostatic',  # AYUDA A WHITENOISE EN DESARROLLO
     'django.contrib.staticfiles',
     'django.contrib.sites',
     
@@ -29,9 +31,10 @@ INSTALLED_APPS = [
     'allauth.socialaccount.providers.google', 
 ]
 
-# --- 4. MIDDLEWARE ---
+# --- 4. MIDDLEWARE (ORDEN CRÍTICO) ---
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',  # <--- INYECTADO AQUÍ PARA ESTÁTICOS
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -63,12 +66,12 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'market.wsgi.application'
 
-# --- 6. BASE DE DATOS ---
+# --- 6. BASE DE DATOS (CONEXIÓN AUTOMÁTICA RENDER) ---
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
+    'default': dj_database_url.config(
+        default=f'sqlite:///{BASE_DIR / "db.sqlite3"}',
+        conn_max_age=600
+    )
 }
 
 # --- 7. INTERNACIONALIZACIÓN ---
@@ -82,33 +85,37 @@ STATIC_URL = '/static/'
 STATICFILES_DIRS = [BASE_DIR / 'static']
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
+# ALMACENAMIENTO DE ESTÁTICOS PARA PRODUCCIÓN
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
-# --- 9. CONFIGURACIÓN MAESTRA ALLAUTH (ELIMINA PANTALLA BLANCA) ---
+# --- 9. CONFIGURACIÓN MAESTRA ALLAUTH ---
 SITE_ID = 1
 AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',
     'allauth.account.auth_backends.AuthenticationBackend',
 ]
 
-# Flujo de entrada directa
+# Flujo de entrada directa sin pantallas blancas
 SOCIALACCOUNT_LOGIN_ON_GET = True
 ACCOUNT_LOGIN_ON_GET = True
+SOCIALACCOUNT_AUTO_SIGNUP = True 
 SOCIALACCOUNT_ADAPTER = 'allauth.socialaccount.adapter.DefaultSocialAccountAdapter'
 SOCIALACCOUNT_QUERY_EMAIL = True
 SOCIALACCOUNT_EMAIL_REQUIRED = True
-SOCIALACCOUNT_EMAIL_VERIFICATION = "none" # <--- MATA LA PANTALLA DE REGISTRO
-ACCOUNT_EMAIL_VERIFICATION = "none"       # <--- MATA LA PANTALLA DE CONFIRMACIÓN
+SOCIALACCOUNT_EMAIL_VERIFICATION = "none"
+ACCOUNT_EMAIL_VERIFICATION = "none"
 
 # Autenticación moderna
 ACCOUNT_AUTHENTICATION_METHOD = 'email'
 ACCOUNT_EMAIL_REQUIRED = True
 ACCOUNT_USERNAME_REQUIRED = False
 
-# Redirecciones Otto-task
-LOGIN_REDIRECT_URL = 'perfil'  # Nombre de tu URL de perfil
-LOGOUT_REDIRECT_URL = 'home'    # Nombre de tu URL de inicio
+# Redirecciones
+LOGIN_REDIRECT_URL = 'perfil'
+LOGOUT_REDIRECT_URL = 'home'
 
 SOCIALACCOUNT_PROVIDERS = {
     'google': {
@@ -117,15 +124,16 @@ SOCIALACCOUNT_PROVIDERS = {
     }
 }
 
-# --- 10. PARCHES PARA TERMUX / ANDROID ---
-from django.core.files import locks
-locks.lock = lambda f, flags: True
-locks.unlock = lambda f: True
-FILE_UPLOAD_PERMISSIONS = 0o644
-
+# --- 10. PARCHES Y DEFAULT FIELDS ---
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
+# PARCHE PARA LOCKS EN SISTEMAS MÓVILES/TERMUX
+try:
+    from django.core.files import locks
+    locks.lock = lambda f, flags: True
+    locks.unlock = lambda f: True
+except (ImportError, AttributeError):
+    pass
 
-# ESTA ES LA LÍNEA MÁGICA QUE QUITA LA PANTALLA BLANCA DE REGISTRO
-SOCIALACCOUNT_AUTO_SIGNUP = True 
+FILE_UPLOAD_PERMISSIONS = 0o644

@@ -1,0 +1,18 @@
+# --- PYTHON / DJANGO ---
+__pycache__/
+*.py[cod]
+*$py.class
+*.env
+db.sqlite3
+staticfiles/
+media/
+
+# --- SISTEMA / TERMUX ---
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# --- RENDER / DEPLOY ---
+venv/
+env/
