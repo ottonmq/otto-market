@@ -10,7 +10,7 @@ django-allauth
 requests
 requests-oauthlib
 python3-openid
-
+jwt
 # --- ALMACENAMIENTO NEÓN (FOTOS) ---
 cloudinary
 django-cloudinary-storage
