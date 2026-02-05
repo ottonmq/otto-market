@@ -4,7 +4,7 @@ from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-otto-task-key-2026')
-DEBUG = False # Forzamos False para estabilidad en Render
+DEBUG = True 
 ALLOWED_HOSTS = ['*', '.render.com']
 CSRF_TRUSTED_ORIGINS = ['https://*.render.com', 'https://otto-market.onrender.com']
 
@@ -38,21 +38,10 @@ MIDDLEWARE = [
 ]
 
 ROOT_URLCONF = 'market.urls'
-TEMPLATES = [{
-    'BACKEND': 'django.template.backends.django.DjangoTemplates',
-    'DIRS': [os.path.join(BASE_DIR, 'templates')],
-    'APP_DIRS': True,
-    'OPTIONS': {
-        'context_processors': [
-            'django.template.context_processors.request',
-            'django.contrib.auth.context_processors.auth',
-            'django.contrib.messages.context_processors.messages',
-            'django.template.context_processors.media',
-        ],
-    },
-}]
+TEMPLATES = [{'BACKEND': 'django.template.backends.django.DjangoTemplates','DIRS': [os.path.join(BASE_DIR, 'templates')],'APP_DIRS': True,'OPTIONS': {'context_processors': ['django.template.context_processors.request','django.contrib.auth.context_processors.auth','django.contrib.messages.context_processors.messages','django.template.context_processors.media',],},},]
 
 WSGI_APPLICATION = 'market.wsgi.application'
+
 DATABASES = {
     'default': dj_database_url.config(
         default=os.environ.get('DATABASE_URL', f'sqlite:///{BASE_DIR / "db.sqlite3"}'),
@@ -60,15 +49,14 @@ DATABASES = {
     )
 }
 
-# --- FIX CRÍTICO DE ESTÁTICOS ---
+# --- CONFIGURACIÓN DE ESTÁTICOS OLD SCHOOL (PARA MATAR EL ERROR) ---
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
 
-# Eliminamos el diccionario STORAGES complejo que causa el AttrError
-# Volvemos a la configuración compatible más estable
-WHITENOISE_USE_FINDERS = True
-WHITENOISE_MANIFEST_STRICT = False
+# NO USAMOS EL DICCIONARIO "STORAGES", USAMOS LAS VARIABLES DIRECTAS:
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
+DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
 
 CLOUDINARY_STORAGE = {
     'CLOUD_NAME': 'dyv76kbtu',
@@ -76,16 +64,11 @@ CLOUDINARY_STORAGE = {
     'API_SECRET': 'J2mI_u549p79q9KPr7mXqK6I8Yk'
 }
 
-DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
-
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 SITE_ID = 1
-AUTHENTICATION_BACKENDS = [
-    'django.contrib.auth.backends.ModelBackend',
-    'allauth.account.auth_backends.AuthenticationBackend'
-]
+AUTHENTICATION_BACKENDS = ['django.contrib.auth.backends.ModelBackend','allauth.account.auth_backends.AuthenticationBackend']
 ACCOUNT_EMAIL_VERIFICATION = 'none'
 LOGIN_REDIRECT_URL = 'home'
 LOGOUT_REDIRECT_URL = 'home'
