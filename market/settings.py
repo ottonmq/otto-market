@@ -2,16 +2,12 @@ import os
 import dj_database_url
 from pathlib import Path
 
-# --- 1. RUTAS BASE ---
 BASE_DIR = Path(__file__).resolve().parent.parent
-
-# --- 2. SEGURIDAD ---
 SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-otto-task-key-2026')
-DEBUG = os.environ.get('DEBUG', 'False') == 'True' # En Render mejor DEBUG False
-ALLOWED_HOSTS = ['*', '.render.com'] 
+DEBUG = False # Forzamos False para estabilidad en Render
+ALLOWED_HOSTS = ['*', '.render.com']
 CSRF_TRUSTED_ORIGINS = ['https://*.render.com', 'https://otto-market.onrender.com']
 
-# --- 3. APPS (ORDEN CRÍTICO) ---
 INSTALLED_APPS = [
     'cloudinary_storage',
     'django.contrib.admin',
@@ -29,7 +25,6 @@ INSTALLED_APPS = [
     'allauth.socialaccount.providers.google',
 ]
 
-# --- 4. MIDDLEWARE (WHITENOISE OPTIMIZADO) ---
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware', 
@@ -43,27 +38,21 @@ MIDDLEWARE = [
 ]
 
 ROOT_URLCONF = 'market.urls'
-
-# --- 5. PLANTILLAS ---
-TEMPLATES = [
-    {
-        'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [os.path.join(BASE_DIR, 'templates')],
-        'APP_DIRS': True,
-        'OPTIONS': {
-            'context_processors': [
-                'django.template.context_processors.request',
-                'django.contrib.auth.context_processors.auth',
-                'django.contrib.messages.context_processors.messages',
-                'django.template.context_processors.media',
-            ],
-        },
+TEMPLATES = [{
+    'BACKEND': 'django.template.backends.django.DjangoTemplates',
+    'DIRS': [os.path.join(BASE_DIR, 'templates')],
+    'APP_DIRS': True,
+    'OPTIONS': {
+        'context_processors': [
+            'django.template.context_processors.request',
+            'django.contrib.auth.context_processors.auth',
+            'django.contrib.messages.context_processors.messages',
+            'django.template.context_processors.media',
+        ],
     },
-]
+}]
 
 WSGI_APPLICATION = 'market.wsgi.application'
-
-# --- 6. BASE DE DATOS ---
 DATABASES = {
     'default': dj_database_url.config(
         default=os.environ.get('DATABASE_URL', f'sqlite:///{BASE_DIR / "db.sqlite3"}'),
@@ -71,20 +60,15 @@ DATABASES = {
     )
 }
 
-# --- 7. ALMACENAMIENTO Y CLOUDINARY (FIX DEFINITIVO) ---
+# --- FIX CRÍTICO DE ESTÁTICOS ---
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
 
-# FIX: Cambiamos 'CompressedManifest' por 'CompressedStaticFilesStorage' para evitar el AttrError
-STORAGES = {
-    "default": {
-        "BACKEND": "cloudinary_storage.storage.MediaCloudinaryStorage",
-    },
-    "staticfiles": {
-        "BACKEND": "whitenoise.storage.CompressedStaticFilesStorage",
-    },
-}
+# Eliminamos el diccionario STORAGES complejo que causa el AttrError
+# Volvemos a la configuración compatible más estable
+WHITENOISE_USE_FINDERS = True
+WHITENOISE_MANIFEST_STRICT = False
 
 CLOUDINARY_STORAGE = {
     'CLOUD_NAME': 'dyv76kbtu',
@@ -92,16 +76,16 @@ CLOUDINARY_STORAGE = {
     'API_SECRET': 'J2mI_u549p79q9KPr7mXqK6I8Yk'
 }
 
+DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
+
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
-# --- 8. ALLAUTH & EXTRAS ---
 SITE_ID = 1
 AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',
     'allauth.account.auth_backends.AuthenticationBackend'
 ]
-
 ACCOUNT_EMAIL_VERIFICATION = 'none'
 LOGIN_REDIRECT_URL = 'home'
 LOGOUT_REDIRECT_URL = 'home'
