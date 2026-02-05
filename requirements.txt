@@ -11,7 +11,7 @@ requests
 requests-oauthlib
 python3-openid
 jwt
-PyJWT
+PyJWT==2.10.1
 # --- ALMACENAMIENTO NEÓN (FOTOS) ---
 cloudinary
 django-cloudinary-storage
