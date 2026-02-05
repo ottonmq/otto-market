@@ -80,10 +80,13 @@ class Publicacion(models.Model):
 
 
 
-
-
-
+# 4. GALERÍA ADICIONAL
 # 4. GALERÍA ADICIONAL
 class Imagen(models.Model):
     publicacion = models.ForeignKey(Publicacion, on_delete=models.CASCADE, related_name='fotos')
-    archivo = models.ImageField(upload_to='productos/')
+    # Cambiamos 'archivo' por 'imagen' para que coincida con el Admin
+    # Agregamos null/blank para que no bloquee el guardado
+    imagen = models.ImageField(upload_to='productos/', null=True, blank=True)
+
+    def __str__(self):
+        return f"Imagen de {self.publicacion.titulo}"
