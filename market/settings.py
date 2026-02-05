@@ -32,6 +32,7 @@ INSTALLED_APPS = [
     'allauth',
     'allauth.account',
     'allauth.socialaccount',
+    'allauth.socialaccount.providers.google',
 ]
 
 # --- 4. MIDDLEWARE (WHITENOISE EN SEGUNDA POSICIÓN) ---
