@@ -7,25 +7,22 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # --- 2. SEGURIDAD ---
 SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-otto-task-key-2026')
-DEBUG = os.environ.get('DEBUG', 'True') == 'True'
+DEBUG = os.environ.get('DEBUG', 'False') == 'True' # En Render mejor DEBUG False
 ALLOWED_HOSTS = ['*', '.render.com'] 
 CSRF_TRUSTED_ORIGINS = ['https://*.render.com', 'https://otto-market.onrender.com']
 
 # --- 3. APPS (ORDEN CRÍTICO) ---
 INSTALLED_APPS = [
-    'cloudinary_storage', # Primero
+    'cloudinary_storage',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    
-    'cloudinary', # Después de staticfiles
-    
+    'cloudinary',
     'django.contrib.sites',
     'marketapp',
-    
     'allauth',
     'allauth.account',
     'allauth.socialaccount',
@@ -74,25 +71,25 @@ DATABASES = {
     )
 }
 
-# --- 7. ALMACENAMIENTO Y CLOUDINARY (BYPASS DE LLAVES) ---
+# --- 7. ALMACENAMIENTO Y CLOUDINARY (FIX DEFINITIVO) ---
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
 
-# Forzamos las llaves directamente para evitar fallos de entorno
-CLOUDINARY_STORAGE = {
-    'CLOUD_NAME': 'dyv76kbtu',
-    'API_KEY': '642517876794157',
-    'API_SECRET': 'J2mI_u549p79q9KPr7mXqK6I8Yk'
-}
-
+# FIX: Cambiamos 'CompressedManifest' por 'CompressedStaticFilesStorage' para evitar el AttrError
 STORAGES = {
     "default": {
         "BACKEND": "cloudinary_storage.storage.MediaCloudinaryStorage",
     },
     "staticfiles": {
-        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+        "BACKEND": "whitenoise.storage.CompressedStaticFilesStorage",
     },
+}
+
+CLOUDINARY_STORAGE = {
+    'CLOUD_NAME': 'dyv76kbtu',
+    'API_KEY': '642517876794157',
+    'API_SECRET': 'J2mI_u549p79q9KPr7mXqK6I8Yk'
 }
 
 MEDIA_URL = '/media/'
