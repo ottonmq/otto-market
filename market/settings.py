@@ -11,20 +11,20 @@ DEBUG = os.environ.get('DEBUG', 'True') == 'True'
 ALLOWED_HOSTS = ['*', '.render.com'] 
 CSRF_TRUSTED_ORIGINS = ['https://*.render.com']
 
-# --- 3. APPS (ORDEN MAESTRO PARA QUE EL ADMIN SE VEA BIEN) ---
+# --- 3. APPS (ORDEN CRÍTICO: STATICFILES DEBE IR ANTES DE CLOUDINARY) ---
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
-    'django.contrib.staticfiles', # Siempre antes de Cloudinary para el Admin
+    'django.contrib.staticfiles',
     
-    # Almacenamiento
+    # Almacenamiento Nube
     'cloudinary_storage',
     'cloudinary',
     
-    # Sistema
+    # Tu App y Sistema
     'django.contrib.sites',
     'marketapp',
     
@@ -34,10 +34,10 @@ INSTALLED_APPS = [
     'allauth.socialaccount',
 ]
 
-# --- 4. MIDDLEWARE (ORDEN CRÍTICO PARA EL DISEÑO) ---
+# --- 4. MIDDLEWARE (WHITENOISE EN SEGUNDA POSICIÓN) ---
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware', # ESTO ARREGLA EL DISEÑO DEL ADMIN
+    'whitenoise.middleware.WhiteNoiseMiddleware', 
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -68,7 +68,7 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'market.wsgi.application'
 
-# --- 6. BASE DE DATOS ---
+# --- 6. BASE DE DATOS (AUTO-DETECCIÓN RENDER) ---
 DATABASES = {
     'default': dj_database_url.config(
         default=os.environ.get('DATABASE_URL', f'sqlite:///{BASE_DIR / "db.sqlite3"}'),
@@ -76,14 +76,20 @@ DATABASES = {
     )
 }
 
-# --- 7. ESTÁTICOS Y MEDIA (BLINDAJE RENDER) ---
+# --- 7. ESTÁTICOS Y MEDIA (COMPATIBLE CON DJANGO 6.0 + CLOUDINARY) ---
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
 
-# Forzamos a WhiteNoise para el Admin y Cloudinary para tus fotos
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
-DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
+# NUEVO DICCIONARIO DE ALMACENAMIENTO OBLIGATORIO EN DJANGO 6.0
+STORAGES = {
+    "default": {
+        "BACKEND": "cloudinary_storage.storage.MediaCloudinaryStorage",
+    },
+    "staticfiles": {
+        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+    },
+}
 
 CLOUDINARY_STORAGE = {
     'CLOUD_NAME': os.environ.get('CLOUDINARY_CLOUD_NAME'),
@@ -94,9 +100,12 @@ CLOUDINARY_STORAGE = {
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
-# --- 8. ALLAUTH & DEFAULTS ---
+# --- 8. ALLAUTH & EXTRAS ---
 SITE_ID = 1
-AUTHENTICATION_BACKENDS = ['django.contrib.auth.backends.ModelBackend', 'allauth.account.auth_backends.AuthenticationBackend']
+AUTHENTICATION_BACKENDS = [
+    'django.contrib.auth.backends.ModelBackend',
+    'allauth.account.auth_backends.AuthenticationBackend'
+]
 LOGIN_REDIRECT_URL = 'home'
 LOGOUT_REDIRECT_URL = 'home'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
