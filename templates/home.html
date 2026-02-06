@@ -342,6 +342,91 @@
 </div>
 
    <div class="price-display">${{ anuncio.precio| default:"" }}</div>
+   
+   
+   
+<div class="otto-radar-fix">
+    <form method="POST" class="nano-form-left">
+        {% csrf_token %}
+        <div class="nano-star-cluster">
+            <input type="radio" name="estrellas" value="5" id="z5-{{ anuncio.id }}"><label for="z5-{{ anuncio.id }}">★</label>
+            <input type="radio" name="estrellas" value="4" id="z4-{{ anuncio.id }}"><label for="z4-{{ anuncio.id }}">★</label>
+            <input type="radio" name="estrellas" value="3" id="z3-{{ anuncio.id }}"><label for="z3-{{ anuncio.id }}">★</label>
+            <input type="radio" name="estrellas" value="2" id="z2-{{ anuncio.id }}"><label for="z2-{{ anuncio.id }}">★</label>
+            <input type="radio" name="estrellas" value="1" id="z1-{{ anuncio.id }}"><label for="z1-{{ anuncio.id }}">★</label>
+        </div>
+        
+        <div class="nano-input-group">
+            <input type="text" name="comentario" placeholder="Informe..." class="nano-input-field" required>
+            <button type="submit" class="nano-save-icon">💾</button>
+        </div>
+    </form>
+</div>
+
+<style>
+    /* 1. LIMITADOR DE ANCHO PARA NO ROMPER LAS 2 COLUMNAS */
+    .otto-radar-fix {
+        width: 100%;
+        max-width: 100%; /* Blindado para que no empuje la caja */
+        border-top: 1px solid rgba(0, 243, 255, 0.3);
+        padding: 4px 2px;
+        margin-top: 5px;
+        box-sizing: border-box;
+    }
+
+    /* 2. ESTRELLAS: Alineación a la izquierda y tamaño nano */
+    .nano-star-cluster {
+        display: flex;
+        flex-direction: row-reverse;
+        justify-content: flex-end; /* ⬅️ ESTO LAS PEGA A LA IZQUIERDA */
+        gap: 2px;
+        margin-bottom: 4px;
+    }
+
+    .nano-star-cluster input { display: none !important; }
+
+    .nano-star-cluster label {
+        font-size: 16px; /* Tamaño reducido para ahorrar espacio */
+        color: #444;    /* Gris para visibilidad base */
+        cursor: pointer;
+    }
+
+    /* Iluminación Cian Neón */
+    .nano-star-cluster input:checked ~ label,
+    .nano-star-cluster label:hover ~ label {
+        color: #00f3ff !important;
+        text-shadow: 0 0 8px #00f3ff;
+    }
+
+    /* 3. INPUT: Tamaño ajustado para móvil */
+    .nano-input-group {
+        display: flex;
+        align-items: center;
+        width: 100%;
+    }
+
+    .nano-input-field {
+        background: #000;
+        border: 1px solid #ff00ff;
+        color: white;
+        font-size: 14px;
+        height: 30px;
+        width: 80%; /* No dejamos que ocupe el 100% para que no empuje */
+        padding-left: 4px;
+        outline: none;
+    }
+
+    .nano-save-icon {
+        background: transparent;
+        border: none;
+        color: #00f3ff;
+        font-size: 14px;
+        width: 20%;
+        cursor: pointer;
+        filter: drop-shadow(0 0 3px #00f3ff);
+    }
+</style>
+
 
 <a href="{% url 'detalle' anuncio.id %}" 
    class="action-button" 

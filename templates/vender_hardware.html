@@ -134,45 +134,36 @@
 
 <script>
     document.addEventListener("DOMContentLoaded", function() {
-        // LIMPIEZA DE INPUTS FILE (QUITA LAS RAYAS Y LINKS DE DJANGO)
-        const inputs = document.querySelectorAll('.form-unit');
-        inputs.forEach(unit => {
-            // Buscamos si hay texto suelto como "Actualmente:" o "Cambiar:" y lo borramos
-            unit.childNodes.forEach(node => {
-                if (node.nodeType === 3) { // 3 es un nodo de texto
-                    node.textContent = ""; 
-                }
-            });
-        });
-
-        // VISTA PREVIA INSTANTÁNEA (Para que no tengas que recargar)
+        // DETECTOR DE ARCHIVOS - NO BORRA NODOS, SOLO MUESTRA LA PREVIA
         const fileInput = document.querySelector('input[type="file"]');
+        
         if (fileInput) {
             fileInput.addEventListener('change', function() {
                 const file = this.files[0];
                 if (file) {
                     const reader = new FileReader();
                     reader.onload = function(e) {
-                        const img = document.querySelector('.operator-scanner img');
-                        if (img) {
-                            img.src = e.target.result;
-                        } else {
-                            // Si no había imagen, la creamos
-                            const div = document.getElementById('no-data');
-                            if (div) div.style.display = 'none';
-                            const newImg = document.createElement('img');
-                            newImg.src = e.target.result;
-                            newImg.style.width = "100%";
-                            newImg.style.height = "100%";
-                            newImg.style.objectFit = "cover";
-                            document.querySelector('.operator-scanner').appendChild(newImg);
+                        const scanner = document.querySelector('.operator-scanner');
+                        let img = scanner.querySelector('img');
+                        const noData = document.getElementById('no-data');
+                        
+                        if (noData) noData.style.display = 'none';
+                        
+                        if (!img) {
+                            img = document.createElement('img');
+                            img.style.width = "100%";
+                            img.style.height = "100%";
+                            img.style.objectFit = "cover";
+                            scanner.appendChild(img);
                         }
-                    }
+                        img.src = e.target.result;
+                    };
                     reader.readAsDataURL(file);
                 }
             });
         }
     });
 </script>
+
 
 {% endblock %}
