@@ -10,6 +10,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 IS_TERMUX = 'com.termux' in os.environ.get('PREFIX', '')
 
 if IS_TERMUX:
+    # MATAMOS EL BLOQUEO DE ARCHIVOS QUE CAUSA EL ERROR 38
     try:
         from django.core.files import locks
         locks.lock = lambda f, flags: True
@@ -25,7 +26,7 @@ if IS_TERMUX:
 # 🔑 SEGURIDAD Y ACCESO
 # ==========================================================
 SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-otto-task-key-2026')
-DEBUG = True 
+DEBUG = True # Cámbialo a False solo cuando las fotos funcionen al 100% en Render
 ALLOWED_HOSTS = ['*', '.render.com']
 CSRF_TRUSTED_ORIGINS = ['https://*.render.com', 'https://otto-market.onrender.com']
 
@@ -33,7 +34,7 @@ CSRF_TRUSTED_ORIGINS = ['https://*.render.com', 'https://otto-market.onrender.co
 # 🧩 MÓDULOS DEL SISTEMA (APPS)
 # ==========================================================
 INSTALLED_APPS = [
-    'cloudinary_storage', # Siempre primero para capturar los media
+    'cloudinary_storage',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -82,7 +83,7 @@ TEMPLATES = [
 WSGI_APPLICATION = 'market.wsgi.application'
 
 # ==========================================================
-# 🗄️ BASE DE DATOS (MERCADO POSTGRES / LOCAL SQLITE)
+# 🗄️ BASE DE DATOS (AUTO-DETECCIÓN)
 # ==========================================================
 DATABASES = {
     'default': dj_database_url.config(
@@ -100,15 +101,17 @@ STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
 
 # --- LÓGICA DE FOTOS PERSISTENTES ---
-# Forzamos a Cloudinary si NO estamos en Termux
 if not IS_TERMUX:
+    # EN RENDER USAMOS CLOUDINARY PARA QUE LAS FOTOS NO SE BORREN
     DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
     CLOUDINARY_STORAGE = {
-        'CLOUD_NAME': 'dmfhdilyd',
-        'API_KEY': '642517876794157',
-        'API_SECRET': 'J2mI_u549p79q9KPr7mXqK6I8Yk'
-    }
+    'CLOUD_NAME': 'dmfhdilyd',  # <--- ESTE ES EL TUYO REAL
+    'API_KEY': '642517876794157', 
+    'API_SECRET': 'J2mI_u549p79q9KPr7mXqK6I8Yk' 
+}
+
 else:
+    # EN LOCAL USAMOS EL DISCO PARA PRUEBAS RÁPIDAS
     DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
 
 MEDIA_URL = '/media/'
