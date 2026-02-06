@@ -4,7 +4,7 @@ import dj_database_url
 from pathlib import Path
 
 # ==========================================================
-# 🛰️ ESCÁNER DE ENTORNO Y PARCHE TERMUX (ERROR 38)
+# 🛰️ ESCÁNER DE ENTORNO Y PARCHE TERMUX
 # ==========================================================
 BASE_DIR = Path(__file__).resolve().parent.parent
 IS_TERMUX = 'com.termux' in os.environ.get('PREFIX', '')
@@ -30,10 +30,10 @@ ALLOWED_HOSTS = ['*', '.render.com']
 CSRF_TRUSTED_ORIGINS = ['https://*.render.com', 'https://otto-market.onrender.com']
 
 # ==========================================================
-# 🧩 MÓDULOS DEL SISTEMA (APPS)
+# 🧩 MÓDULOS DEL SISTEMA (APPS) - EL ORDEN ES CLAVE
 # ==========================================================
 INSTALLED_APPS = [
-    'cloudinary_storage', # Siempre primero para capturar los media
+    'cloudinary_storage',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -82,14 +82,24 @@ TEMPLATES = [
 WSGI_APPLICATION = 'market.wsgi.application'
 
 # ==========================================================
-# 🗄️ BASE DE DATOS (MERCADO POSTGRES / LOCAL SQLITE)
+# 🗄️ BASE DE DATOS: EL ANCLA DE POSTGRES
 # ==========================================================
-DATABASES = {
-    'default': dj_database_url.config(
-        default=os.environ.get('DATABASE_URL', f'sqlite:///{BASE_DIR / "db.sqlite3"}'),
-        conn_max_age=600
-    )
-}
+if not IS_TERMUX:
+    # AQUÍ FORZAMOS TU BASE DE DATOS REAL PARA QUE NO SE BORRE NADA
+    DATABASES = {
+        'default': dj_database_url.config(
+            default='postgresql://market_db_pnun_user:GakvaG9OoAiJxLdWrQaCtAFTrekH1DWJ@dpg-d61c049r0fns73fpu2ag-a/market_db_pnun',
+            conn_max_age=600
+        )
+    }
+else:
+    # Para tu Termux
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
+    }
 
 # ==========================================================
 # 🚀 ALMACENAMIENTO NEÓN (STATIC & MEDIA)
@@ -99,8 +109,6 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
 
-# --- LÓGICA DE FOTOS PERSISTENTES ---
-# Forzamos a Cloudinary si NO estamos en Termux
 if not IS_TERMUX:
     DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
     CLOUDINARY_STORAGE = {
@@ -115,7 +123,7 @@ MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 # ==========================================================
-# 🔐 CONFIGURACIÓN DE CUENTAS Y GOOGLE LOGIN
+# 🔐 FINAL DE CONFIGURACIÓN
 # ==========================================================
 SITE_ID = 1
 AUTHENTICATION_BACKENDS = [
