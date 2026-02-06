@@ -1,8 +1,10 @@
 import os
 import sys
 import dj_database_url
+import cloudinary # <--- CRÍTICO
+import cloudinary.uploader
+import cloudinary.api
 from pathlib import Path
-import cloudinary # <--- IMPORTANTE
 
 # ==========================================================
 # 🛰️ ESCÁNER DE ENTORNO Y PARCHE TERMUX
@@ -30,7 +32,7 @@ CSRF_TRUSTED_ORIGINS = ['https://*.render.com', 'https://otto-market.onrender.co
 # 🧩 MÓDULOS DEL SISTEMA (APPS)
 # ==========================================================
 INSTALLED_APPS = [
-    'cloudinary_storage', # Siempre arriba de staticfiles
+    'cloudinary_storage', # DEBE ir antes de staticfiles
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -100,18 +102,20 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
 # 🛰️ CONEXIÓN MAESTRA CLOUDINARY (ANTI-BORRADO)
 # ==========================================================
 if not IS_TERMUX:
-    # EN RENDER: USAMOS LA URL MAESTRA PARA EVITAR ERRORES DE LLAVE
     DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
     
-    # URL MAESTRA INCORPORADA
+    # ESTO ES LO QUE TE FALTABA: INICIALIZAR LA LIBRERÍA MANUALMENTE
+    cloudinary.config(
+        cloud_name = "dmfhdilyd",
+        api_key = "642517876794157",
+        api_secret = "J2mI_u549p79q9KPr7mXqK6I8Yk",
+        secure = True
+    )
+    
     CLOUDINARY_STORAGE = {
-        'CLOUDINARY_URL': os.environ.get(
-            'CLOUDINARY_URL', 
-            'cloudinary://642517876794157:J2mI_u549p79q9KPr7mXqK6I8Yk@dmfhdilyd'
-        )
+        'CLOUDINARY_URL': 'cloudinary://642517876794157:J2mI_u549p79q9KPr7mXqK6I8Yk@dmfhdilyd'
     }
 else:
-    # EN LOCAL: USAMOS EL DISCO
     DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
 
 MEDIA_URL = '/media/'
