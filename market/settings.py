@@ -105,10 +105,11 @@ if not IS_TERMUX:
     # EN RENDER USAMOS CLOUDINARY PARA QUE LAS FOTOS NO SE BORREN
     DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
     CLOUDINARY_STORAGE = {
-        'CLOUD_NAME': 'dyv76kbtu',
-        'API_KEY': '642517876794157',
-        'API_SECRET': 'J2mI_u549p79q9KPr7mXqK6I8Yk'
-    }
+    'CLOUD_NAME': 'dmfhdilyd',  # <--- ESTE ES EL TUYO REAL
+    'API_KEY': '642517876794157', 
+    'API_SECRET': 'J2mI_u549p79q9KPr7mXqK6I8Yk' 
+}
+
 else:
     # EN LOCAL USAMOS EL DISCO PARA PRUEBAS RÁPIDAS
     DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
