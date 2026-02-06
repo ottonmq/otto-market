@@ -1,25 +1,19 @@
 import os
-import sys
-import dj_database_url
 from pathlib import Path
 import cloudinary
 import cloudinary.storage
 
 # ==========================================================
-# 🛰️ NÚCLEO DEL SISTEMA
+# 🛰️ NÚCLEO OTTO-TASK
 # ==========================================================
 BASE_DIR = Path(__file__).resolve().parent.parent
-
-# ==========================================================
-# 🔑 SEGURIDAD NEÓN
-# ==========================================================
 SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-otto-task-key-2026')
 DEBUG = True 
 ALLOWED_HOSTS = ['*', '.render.com']
 CSRF_TRUSTED_ORIGINS = ['https://*.render.com', 'https://otto-market.onrender.com']
 
 # ==========================================================
-# 🧩 MÓDULOS DEL SISTEMA (ORDEN DE PRIORIDAD)
+# 🧩 APPS (ORDEN DE FUEGO)
 # ==========================================================
 INSTALLED_APPS = [
     'cloudinary_storage',
@@ -72,9 +66,8 @@ TEMPLATES = [
 WSGI_APPLICATION = 'market.wsgi.application'
 
 # ==========================================================
-# 🗄️ BASE DE DATOS: INYECCIÓN DIRECTA (SOLUCIÓN AL ERROR)
+# 🗄️ BASE DE DATOS (MÉTODO MANUAL - SIN LIBRERÍAS)
 # ==========================================================
-# Extraemos los datos de la URL para que no haya fallos de ENGINE
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
@@ -87,7 +80,7 @@ DATABASES = {
 }
 
 # ==========================================================
-# 🚀 ALMACENAMIENTO: CLOUDINARY TOTAL
+# 🚀 STORAGE
 # ==========================================================
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
@@ -113,7 +106,7 @@ MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 # ==========================================================
-# 🔐 PROTOCOLOS DE ACCESO
+# 🔐 AUTH
 # ==========================================================
 SITE_ID = 1
 AUTHENTICATION_BACKENDS = [
