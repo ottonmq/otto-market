@@ -1,28 +1,19 @@
-# --- MOTOR BASE ---
-Django>=5.0.0
+django>=5.0.0
 gunicorn
 whitenoise
-dj-database-url  # <--- ESTA ES LA QUE MATÓ TU ÚLTIMO BUILD
+dj-database-url
 psycopg2-binary
-
-# --- SISTEMA DE AUTENTICACIÓN (LOGIN GOOGLE) ---
 django-allauth
 requests
 requests-oauthlib
 python3-openid
-jwt
 PyJWT==2.10.1
-# --- ALMACENAMIENTO NEÓN (FOTOS) ---
 cloudinary
 django-cloudinary-storage
 pillow
-
-# --- SEGURIDAD Y ENCRIPTACIÓN (LAS QUE PIDEN 40+) ---
 cryptography
 pyOpenSSL
 cffi
 certifi
 defusedxml
-
-# --- UTILIDADES ---
 python-dotenv
