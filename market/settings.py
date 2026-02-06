@@ -1,7 +1,7 @@
 import os
 import sys
 import dj_database_url
-import cloudinary # <--- CRÍTICO
+import cloudinary
 import cloudinary.uploader
 import cloudinary.api
 from pathlib import Path
@@ -32,14 +32,14 @@ CSRF_TRUSTED_ORIGINS = ['https://*.render.com', 'https://otto-market.onrender.co
 # 🧩 MÓDULOS DEL SISTEMA (APPS)
 # ==========================================================
 INSTALLED_APPS = [
-    'cloudinary_storage', # DEBE ir antes de staticfiles
+    'cloudinary_storage', # DEBE ir antes de staticfiles para interceptar MEDIA
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'cloudinary',
+    'cloudinary', # Motor de procesamiento de imágenes
     'django.contrib.sites',
     'marketapp',
     'allauth',
@@ -81,7 +81,7 @@ TEMPLATES = [
 WSGI_APPLICATION = 'market.wsgi.application'
 
 # ==========================================================
-# 🗄️ BASE DE DATOS (NEON.TECH)
+# 🗄️ BASE DE DATOS (NEON.TECH / SQLITE)
 # ==========================================================
 DATABASES = {
     'default': dj_database_url.config(
@@ -102,9 +102,10 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
 # 🛰️ CONEXIÓN MAESTRA CLOUDINARY (ANTI-BORRADO)
 # ==========================================================
 if not IS_TERMUX:
+    # 1. Definimos el motor de almacenamiento persistente
     DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
     
-    # ESTO ES LO QUE TE FALTABA: INICIALIZAR LA LIBRERÍA MANUALMENTE
+    # 2. Inicialización directa de la API (Evita el error de cloud_name)
     cloudinary.config(
         cloud_name = "dmfhdilyd",
         api_key = "642517876794157",
@@ -112,17 +113,21 @@ if not IS_TERMUX:
         secure = True
     )
     
+    # 3. Diccionario de configuración para django-cloudinary-storage
     CLOUDINARY_STORAGE = {
-        'CLOUDINARY_URL': 'cloudinary://642517876794157:J2mI_u549p79q9KPr7mXqK6I8Yk@dmfhdilyd'
+        'CLOUD_NAME': 'dmfhdilyd',
+        'API_KEY': '642517876794157',
+        'API_SECRET': 'J2mI_u549p79q9KPr7mXqK6I8Yk'
     }
 else:
+    # En Localhost o Termux, usamos el disco duro local
     DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 # ==========================================================
-# 🔐 ALLAUTH & SOCIAL SETTINGS
+# 🔐 CONFIGURACIÓN DE CUENTAS
 # ==========================================================
 SITE_ID = 1
 AUTHENTICATION_BACKENDS = [
