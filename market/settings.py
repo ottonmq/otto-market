@@ -2,23 +2,19 @@ import os
 import sys
 import dj_database_url
 from pathlib import Path
+import cloudinary # <--- IMPORTANTE
 
 # ==========================================================
-# 🛰️ ESCÁNER DE ENTORNO Y PARCHE TERMUX (ERROR 38)
+# 🛰️ ESCÁNER DE ENTORNO Y PARCHE TERMUX
 # ==========================================================
 BASE_DIR = Path(__file__).resolve().parent.parent
 IS_TERMUX = 'com.termux' in os.environ.get('PREFIX', '')
 
 if IS_TERMUX:
-    # MATAMOS EL BLOQUEO DE ARCHIVOS QUE CAUSA EL ERROR 38
     try:
         from django.core.files import locks
         locks.lock = lambda f, flags: True
         locks.unlock = lambda f: True
-        
-        import sqlite3
-        from django.db.backends.sqlite3.base import DatabaseWrapper
-        DatabaseWrapper.check_constraints = lambda self, connection=None: None
     except Exception:
         pass
 
@@ -26,7 +22,7 @@ if IS_TERMUX:
 # 🔑 SEGURIDAD Y ACCESO
 # ==========================================================
 SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-otto-task-key-2026')
-DEBUG = True # Cámbialo a False solo cuando las fotos funcionen al 100% en Render
+DEBUG = True 
 ALLOWED_HOSTS = ['*', '.render.com']
 CSRF_TRUSTED_ORIGINS = ['https://*.render.com', 'https://otto-market.onrender.com']
 
@@ -34,7 +30,7 @@ CSRF_TRUSTED_ORIGINS = ['https://*.render.com', 'https://otto-market.onrender.co
 # 🧩 MÓDULOS DEL SISTEMA (APPS)
 # ==========================================================
 INSTALLED_APPS = [
-    'cloudinary_storage',
+    'cloudinary_storage', # Siempre arriba de staticfiles
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -83,7 +79,7 @@ TEMPLATES = [
 WSGI_APPLICATION = 'market.wsgi.application'
 
 # ==========================================================
-# 🗄️ BASE DE DATOS (AUTO-DETECCIÓN)
+# 🗄️ BASE DE DATOS (NEON.TECH)
 # ==========================================================
 DATABASES = {
     'default': dj_database_url.config(
@@ -93,32 +89,36 @@ DATABASES = {
 }
 
 # ==========================================================
-# 🚀 ALMACENAMIENTO NEÓN (STATIC & MEDIA)
+# 🚀 ALMACENAMIENTO ESTÁTICO (WHITENOISE)
 # ==========================================================
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
 
-# --- LÓGICA DE FOTOS PERSISTENTES ---
+# ==========================================================
+# 🛰️ CONEXIÓN MAESTRA CLOUDINARY (ANTI-BORRADO)
+# ==========================================================
 if not IS_TERMUX:
-    # EN RENDER USAMOS CLOUDINARY PARA QUE LAS FOTOS NO SE BORREN
+    # EN RENDER: USAMOS LA URL MAESTRA PARA EVITAR ERRORES DE LLAVE
     DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
+    
+    # URL MAESTRA INCORPORADA
     CLOUDINARY_STORAGE = {
-    'CLOUD_NAME': 'dmfhdilyd',  # <--- ESTE ES EL TUYO REAL
-    'API_KEY': '642517876794157', 
-    'API_SECRET': 'J2mI_u549p79q9KPr7mXqK6I8Yk' 
-}
-
+        'CLOUDINARY_URL': os.environ.get(
+            'CLOUDINARY_URL', 
+            'cloudinary://642517876794157:J2mI_u549p79q9KPr7mXqK6I8Yk@dmfhdilyd'
+        )
+    }
 else:
-    # EN LOCAL USAMOS EL DISCO PARA PRUEBAS RÁPIDAS
+    # EN LOCAL: USAMOS EL DISCO
     DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 # ==========================================================
-# 🔐 CONFIGURACIÓN DE CUENTAS Y GOOGLE LOGIN
+# 🔐 ALLAUTH & SOCIAL SETTINGS
 # ==========================================================
 SITE_ID = 1
 AUTHENTICATION_BACKENDS = [
