@@ -2,27 +2,16 @@ import os
 import sys
 import dj_database_url
 from pathlib import Path
+import cloudinary
+import cloudinary.storage
 
 # ==========================================================
-# 🛰️ ESCÁNER DE ENTORNO Y PARCHE TERMUX
+# 🛰️ NÚCLEO DEL SISTEMA
 # ==========================================================
 BASE_DIR = Path(__file__).resolve().parent.parent
-IS_TERMUX = 'com.termux' in os.environ.get('PREFIX', '')
-
-if IS_TERMUX:
-    try:
-        from django.core.files import locks
-        locks.lock = lambda f, flags: True
-        locks.unlock = lambda f: True
-        
-        import sqlite3
-        from django.db.backends.sqlite3.base import DatabaseWrapper
-        DatabaseWrapper.check_constraints = lambda self, connection=None: None
-    except Exception:
-        pass
 
 # ==========================================================
-# 🔑 SEGURIDAD Y ACCESO
+# 🔑 SEGURIDAD NEÓN
 # ==========================================================
 SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-otto-task-key-2026')
 DEBUG = True 
@@ -30,15 +19,16 @@ ALLOWED_HOSTS = ['*', '.render.com']
 CSRF_TRUSTED_ORIGINS = ['https://*.render.com', 'https://otto-market.onrender.com']
 
 # ==========================================================
-# 🧩 MÓDULOS DEL SISTEMA (APPS) - EL ORDEN ES CLAVE
+# 🧩 MÓDULOS DEL SISTEMA (ORDEN DE PRIORIDAD)
 # ==========================================================
 INSTALLED_APPS = [
-    'cloudinary_storage',
+    'cloudinary_storage',         # Captura de archivos en la nube
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
+    'cloudinary_storage',         # Doble check para staticfiles
     'django.contrib.staticfiles',
     'cloudinary',
     'django.contrib.sites',
@@ -82,48 +72,45 @@ TEMPLATES = [
 WSGI_APPLICATION = 'market.wsgi.application'
 
 # ==========================================================
-# 🗄️ BASE DE DATOS: EL ANCLA DE POSTGRES
+# 🗄️ BASE DE DATOS: CONEXIÓN POSTGRES MANDATORIA
 # ==========================================================
-if not IS_TERMUX:
-    # AQUÍ FORZAMOS TU BASE DE DATOS REAL PARA QUE NO SE BORRE NADA
-    DATABASES = {
-        'default': dj_database_url.config(
-            default='postgresql://market_db_pnun_user:GakvaG9OoAiJxLdWrQaCtAFTrekH1DWJ@dpg-d61c049r0fns73fpu2ag-a/market_db_pnun',
-            conn_max_age=600
-        )
-    }
-else:
-    # Para tu Termux
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': BASE_DIR / 'db.sqlite3',
-        }
-    }
+DATABASES = {
+    'default': dj_database_url.config(
+        default='postgresql://market_db_pnun_user:GakvaG9OoAiJxLdWrQaCtAFTrekH1DWJ@dpg-d61c049r0fns73fpu2ag-a/market_db_pnun',
+        conn_max_age=600
+    )
+}
 
 # ==========================================================
-# 🚀 ALMACENAMIENTO NEÓN (STATIC & MEDIA)
+# 🚀 ALMACENAMIENTO: CLOUDINARY TOTAL
 # ==========================================================
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
 
-if not IS_TERMUX:
-    DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
-    CLOUDINARY_STORAGE = {
-        'CLOUD_NAME': 'dmfhdilyd',
-        'API_KEY': '642517876794157',
-        'API_SECRET': 'J2mI_u549p79q9KPr7mXqK6I8Yk'
-    }
-else:
-    DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
+# Forzado de archivos a la nube
+DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
+
+CLOUDINARY_STORAGE = {
+    'CLOUD_NAME': 'dmfhdilyd',
+    'API_KEY': '642517876794157',
+    'API_SECRET': 'J2mI_u549p79q9KPr7mXqK6I8Yk'
+}
+
+# Configuración SDK Directa
+cloudinary.config(
+    cloud_name = 'dmfhdilyd',
+    api_key = '642517876794157',
+    api_secret = 'J2mI_u549p79q9KPr7mXqK6I8Yk',
+    secure = True
+)
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 # ==========================================================
-# 🔐 FINAL DE CONFIGURACIÓN
+# 🔐 PROTOCOLOS DE ACCESO
 # ==========================================================
 SITE_ID = 1
 AUTHENTICATION_BACKENDS = [

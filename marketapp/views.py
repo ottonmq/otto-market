@@ -240,6 +240,7 @@ from django.views.decorators.csrf import csrf_exempt
 from .models import Publicacion
 import json
 
+
 @csrf_exempt
 def bot_consulta(request):
     if request.method == 'POST':
@@ -250,20 +251,20 @@ def bot_consulta(request):
             if not texto:
                 return JsonResponse({'respuesta': "🤖 [SISTEMA]: Esperando comando..."})
 
-            # Búsqueda avanzada: Título, Marca o Categoría
+            # Búsqueda avanzada
             productos = Publicacion.objects.filter(
                 Q(titulo__icontains=texto) | 
                 Q(marca__icontains=texto) |
-                Q(categoria__nombre__icontains=texto), # Conexión con relación de categoría
+                Q(categoria__nombre__icontains=texto),
                 vendido=False
             )[:3]
 
             if productos:
                 res = "⚡ **OTTO-MARKET // SUMINISTROS** ⚡<br>"
                 for p in productos:
-                    # INYECCIÓN VISUAL DE CLOUDINARY
-                    if p.imagen:
-                        res += f'<img src="{p.imagen.url}" style="width:100%; border-radius:15px; border:1px solid #00f3ff; margin:10px 0; box-shadow: 0 0 10px #00f3ff44;">'
+                    # CORRECCIÓN AQUÍ: Se usa 'p.foto' porque así se llama en tu Model
+                    if p.foto:
+                        res += f'<img src="{p.foto.url}" style="width:100%; border-radius:15px; border:1px solid #00f3ff; margin:10px 0; box-shadow: 0 0 10px #00f3ff44;">'
                     
                     res += f"📦 **{p.titulo.upper()}**<br>💰 PRECIO: ${p.precio}<br>🔹 MARCA: {p.marca}<br>"
                     res += "────────────────────<br>"
@@ -273,7 +274,7 @@ def bot_consulta(request):
                 
             return JsonResponse({'respuesta': res})
         except Exception as e:
-            return JsonResponse({'respuesta': "💀 [CRITICAL_ERROR]: Fallo en la matriz de datos."}, status=400)
+            return JsonResponse({'respuesta': f"💀 [CRITICAL_ERROR]: {str(e)}"}, status=400)
     
     return JsonResponse({'error': 'Método no permitido'}, status=405)
 
