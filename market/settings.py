@@ -22,13 +22,13 @@ CSRF_TRUSTED_ORIGINS = ['https://*.render.com', 'https://otto-market.onrender.co
 # 🧩 MÓDULOS DEL SISTEMA (ORDEN DE PRIORIDAD)
 # ==========================================================
 INSTALLED_APPS = [
-    'cloudinary_storage',         # Captura de archivos en la nube
+    'cloudinary_storage',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
-    'cloudinary_storage',         # Doble check para staticfiles
+    'cloudinary_storage',
     'django.contrib.staticfiles',
     'cloudinary',
     'django.contrib.sites',
@@ -72,13 +72,18 @@ TEMPLATES = [
 WSGI_APPLICATION = 'market.wsgi.application'
 
 # ==========================================================
-# 🗄️ BASE DE DATOS: CONEXIÓN POSTGRES MANDATORIA
+# 🗄️ BASE DE DATOS: INYECCIÓN DIRECTA (SOLUCIÓN AL ERROR)
 # ==========================================================
+# Extraemos los datos de la URL para que no haya fallos de ENGINE
 DATABASES = {
-    'default': dj_database_url.config(
-        default='postgresql://market_db_pnun_user:GakvaG9OoAiJxLdWrQaCtAFTrekH1DWJ@dpg-d61c049r0fns73fpu2ag-a/market_db_pnun',
-        conn_max_age=600
-    )
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'market_db_pnun',
+        'USER': 'market_db_pnun_user',
+        'PASSWORD': 'GakvaG9OoAiJxLdWrQaCtAFTrekH1DWJ',
+        'HOST': 'dpg-d61c049r0fns73fpu2ag-a.oregon-postgres.render.com',
+        'PORT': '5432',
+    }
 }
 
 # ==========================================================
@@ -89,7 +94,6 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
 
-# Forzado de archivos a la nube
 DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
 
 CLOUDINARY_STORAGE = {
@@ -98,7 +102,6 @@ CLOUDINARY_STORAGE = {
     'API_SECRET': 'J2mI_u549p79q9KPr7mXqK6I8Yk'
 }
 
-# Configuración SDK Directa
 cloudinary.config(
     cloud_name = 'dmfhdilyd',
     api_key = '642517876794157',
