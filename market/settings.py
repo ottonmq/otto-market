@@ -2,17 +2,15 @@ import os
 import sys
 import dj_database_url
 from pathlib import Path
-import cloudinary
-import cloudinary.storage
 
 # ==========================================================
-# 🛰️ NÚCLEO DEL SISTEMA Y DETECCIÓN DE ENTORNO
+# 🛰️ ESCÁNER DE ENTORNO Y PARCHE TERMUX (ERROR 38)
 # ==========================================================
 BASE_DIR = Path(__file__).resolve().parent.parent
 IS_TERMUX = 'com.termux' in os.environ.get('PREFIX', '')
 
-# --- PARCHE TERMUX (ERROR 38) ---
 if IS_TERMUX:
+    # MATAMOS EL BLOQUEO DE ARCHIVOS QUE CAUSA EL ERROR 38
     try:
         from django.core.files import locks
         locks.lock = lambda f, flags: True
@@ -25,10 +23,10 @@ if IS_TERMUX:
         pass
 
 # ==========================================================
-# 🔑 SEGURIDAD NEÓN
+# 🔑 SEGURIDAD Y ACCESO
 # ==========================================================
 SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-otto-task-key-2026')
-DEBUG = True 
+DEBUG = True # Cámbialo a False solo cuando las fotos funcionen al 100% en Render
 ALLOWED_HOSTS = ['*', '.render.com']
 CSRF_TRUSTED_ORIGINS = ['https://*.render.com', 'https://otto-market.onrender.com']
 
@@ -36,7 +34,7 @@ CSRF_TRUSTED_ORIGINS = ['https://*.render.com', 'https://otto-market.onrender.co
 # 🧩 MÓDULOS DEL SISTEMA (APPS)
 # ==========================================================
 INSTALLED_APPS = [
-    'cloudinary_storage',         # Captura de archivos en la nube
+    'cloudinary_storage',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -64,9 +62,7 @@ MIDDLEWARE = [
     'allauth.account.middleware.AccountMiddleware',
 ]
 
-# 🚨 PUNTEROS DE CARPETA (market)
 ROOT_URLCONF = 'market.urls'
-WSGI_APPLICATION = 'market.wsgi.application'
 
 TEMPLATES = [
     {
@@ -84,50 +80,45 @@ TEMPLATES = [
     },
 ]
 
-# ==========================================================
-# 🗄️ BASE DE DATOS: AUTO-DETECCIÓN INTELIGENTE
-# ==========================================================
-if not IS_TERMUX:
-    # EN RENDER: POSTGRES OBLIGATORIO
-    DATABASES = {
-        'default': dj_database_url.config(
-            default='postgresql://market_db_pnun_user:GakvaG9OoAiJxLdWrQaCtAFTrekH1DWJ@dpg-d61c049r0fns73fpu2ag-a.oregon-postgres.render.com/market_db_pnun',
-            conn_max_age=600
-        )
-    }
-else:
-    # EN TERMUX: SQLITE LOCAL
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': BASE_DIR / 'db.sqlite3',
-        }
-    }
+WSGI_APPLICATION = 'market.wsgi.application'
 
 # ==========================================================
-# 🚀 ALMACENAMIENTO (STATIC & CLOUDINARY)
+# 🗄️ BASE DE DATOS (AUTO-DETECCIÓN)
+# ==========================================================
+DATABASES = {
+    'default': dj_database_url.config(
+        default=os.environ.get('DATABASE_URL', f'sqlite:///{BASE_DIR / "db.sqlite3"}'),
+        conn_max_age=600
+    )
+}
+
+# ==========================================================
+# 🚀 ALMACENAMIENTO NEÓN (STATIC & MEDIA)
 # ==========================================================
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
 
-# LÓGICA DE FOTOS PERSISTENTES
+# --- LÓGICA DE FOTOS PERSISTENTES ---
 if not IS_TERMUX:
+    # EN RENDER USAMOS CLOUDINARY PARA QUE LAS FOTOS NO SE BORREN
     DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
     CLOUDINARY_STORAGE = {
-        'CLOUD_NAME': 'dmfhdilyd',
-        'API_KEY': '642517876794157',
-        'API_SECRET': 'J2mI_u549p79q9KPr7mXqK6I8Yk'
-    }
+    'CLOUD_NAME': 'dmfhdilyd',  # <--- ESTE ES EL TUYO REAL
+    'API_KEY': '642517876794157', 
+    'API_SECRET': 'J2mI_u549p79q9KPr7mXqK6I8Yk' 
+}
+
 else:
+    # EN LOCAL USAMOS EL DISCO PARA PRUEBAS RÁPIDAS
     DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 # ==========================================================
-# 🔐 PROTOCOLOS DE ACCESO (GOOGLE LOGIN)
+# 🔐 CONFIGURACIÓN DE CUENTAS Y GOOGLE LOGIN
 # ==========================================================
 SITE_ID = 1
 AUTHENTICATION_BACKENDS = [
