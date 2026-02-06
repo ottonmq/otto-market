@@ -7,12 +7,13 @@ import cloudinary.api
 from pathlib import Path
 
 # ==========================================================
-# 🛰️ ESCÁNER DE ENTORNO Y PARCHE TERMUX
+# 🛰️ ESCÁNER DE ENTORNO Y PARCHE TERMUX (ERROR 38)
 # ==========================================================
 BASE_DIR = Path(__file__).resolve().parent.parent
 IS_TERMUX = 'com.termux' in os.environ.get('PREFIX', '')
 
 if IS_TERMUX:
+    # ELIMINAMOS EL BLOQUEO DE ARCHIVOS EN ANDROID
     try:
         from django.core.files import locks
         locks.lock = lambda f, flags: True
@@ -29,17 +30,17 @@ ALLOWED_HOSTS = ['*', '.render.com']
 CSRF_TRUSTED_ORIGINS = ['https://*.render.com', 'https://otto-market.onrender.com']
 
 # ==========================================================
-# 🧩 MÓDULOS DEL SISTEMA (APPS)
+# 🧩 MÓDULOS DEL SISTEMA (APPS) - EL ORDEN ES VITAL
 # ==========================================================
 INSTALLED_APPS = [
-    'cloudinary_storage', # DEBE ir antes de staticfiles para interceptar MEDIA
+    'cloudinary_storage', # Primero para interceptar MEDIA
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'cloudinary', # Motor de procesamiento de imágenes
+    'cloudinary', # Motor de procesamiento
     'django.contrib.sites',
     'marketapp',
     'allauth',
@@ -81,7 +82,7 @@ TEMPLATES = [
 WSGI_APPLICATION = 'market.wsgi.application'
 
 # ==========================================================
-# 🗄️ BASE DE DATOS (NEON.TECH / SQLITE)
+# 🗄️ BASE DE DATOS (NEON.TECH / SQLITE FALLBACK)
 # ==========================================================
 DATABASES = {
     'default': dj_database_url.config(
@@ -102,10 +103,10 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
 # 🛰️ CONEXIÓN MAESTRA CLOUDINARY (ANTI-BORRADO)
 # ==========================================================
 if not IS_TERMUX:
-    # 1. Definimos el motor de almacenamiento persistente
+    # 1. Motor de almacenamiento para archivos subidos
     DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
     
-    # 2. Inicialización directa de la API (Evita el error de cloud_name)
+    # 2. Inicialización Global (Mata el error de cloud_name en HTML)
     cloudinary.config(
         cloud_name = "dmfhdilyd",
         api_key = "642517876794157",
@@ -113,21 +114,21 @@ if not IS_TERMUX:
         secure = True
     )
     
-    # 3. Diccionario de configuración para django-cloudinary-storage
+    # 3. Configuración del Storage Backend
     CLOUDINARY_STORAGE = {
         'CLOUD_NAME': 'dmfhdilyd',
         'API_KEY': '642517876794157',
         'API_SECRET': 'J2mI_u549p79q9KPr7mXqK6I8Yk'
     }
 else:
-    # En Localhost o Termux, usamos el disco duro local
+    # Modo Local / Desarrollo
     DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 # ==========================================================
-# 🔐 CONFIGURACIÓN DE CUENTAS
+# 🔐 CONFIGURACIÓN DE CUENTAS (ALLAUTH)
 # ==========================================================
 SITE_ID = 1
 AUTHENTICATION_BACKENDS = [
