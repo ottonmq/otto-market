@@ -106,3 +106,31 @@ class Imagen(models.Model):
 
     def __str__(self):
         return f"Imagen de {self.publicacion.titulo}"
+
+
+
+# ==========================================================
+# ⭐ 5. RESEÑAS: Sistema de Calificaciones (Otto-task)
+# ==========================================================
+class Resena(models.Model):
+    # Conectamos con tu modelo Publicacion
+    publicacion = models.ForeignKey(Publicacion, on_delete=models.CASCADE, related_name='resenas')
+    # El usuario que lanza el comentario
+    autor = models.ForeignKey(User, on_delete=models.CASCADE)
+    
+    # Calificación 1-5 (Para tus estrellas neón)
+    puntuacion = models.IntegerField(default=5)
+    
+    # El cuadro de "Informe..."
+    comentario = models.TextField(max_length=500, blank=True, null=True)
+    
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-fecha_creacion']
+        # Evitamos que un usuario spamee: una reseña por usuario por producto
+        unique_together = ('publicacion', 'autor')
+
+    def __str__(self):
+        return f"{self.puntuacion}⭐ por {self.autor.username}"
+

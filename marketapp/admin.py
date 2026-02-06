@@ -49,3 +49,23 @@ class ImagenAdmin(admin.ModelAdmin):
             return format_html('<img src="{}" style="width: 50px; height: auto; border: 1px solid #00f3ff;" />', obj.imagen.url)
         return "SIN_DATA"
     imagen_preview.short_description = 'PREVIEW'
+
+
+
+
+from django.contrib import admin
+from .models import Publicacion, Resena # Asegurate de que estos sean tus nombres de clase
+
+from django.contrib import admin
+from .models import Publicacion, Resena # Asegurate de que estos sean tus nombres de clase
+
+@admin.register(Resena)
+class ResenaAdmin(admin.ModelAdmin):
+    # Esto es lo que vas a ver en la lista del admin
+    list_display = ('id', 'autor', 'publicacion', 'puntuacion', 'fecha_creacion')
+    # Filtros laterales para no perderte en los datos
+    list_filter = ('puntuacion', 'fecha_creacion', 'publicacion')
+    # Buscador para encontrar informes rápido
+    search_fields = ('autor__username', 'comentario')
+    # Estrellas doradas en el panel (opcional pero ayuda a la vista)
+    ordering = ('-fecha_creacion',)

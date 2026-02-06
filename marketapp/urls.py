@@ -30,5 +30,7 @@ urlpatterns = [
     path('bot/consultar/', views.bot_consulta, name='bot_consulta'),
     
     path('chatbot/', views.pagina_bot, name='pagina_bot'),
+    
+    path('publicacion/<int:pk>/opiniones/', views.ver_opiniones, name='ver_opiniones')
 
 ]

@@ -1,4 +1,5 @@
 
+{% load static %}
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -8,15 +9,36 @@
     <style>
         :root { --neon: #00f3ff; --bg: #050505; --card: #0d0d0f; --border: #1a1a1c; }
         
-        /* FULL SCREEN REAL */
-        html, body { height: 100%; margin: 0; padding: 0; background: var(--bg); color: #fff; font-family: 'Segoe UI', sans-serif; overflow: hidden; }
+        /* REPARADO: Scroll habilitado pero sin barras feas */
+        html, body { 
+            height: 100%; margin: 0; padding: 0; 
+            background: var(--bg); color: #fff; 
+            font-family: 'Segoe UI', sans-serif; 
+            overflow: hidden; /* Mantiene la estructura fija */
+        }
 
         .otto-frame {
             width: 100vw; height: 100vh; background: var(--card);
             display: flex; flex-direction: column; position: relative;
         }
 
-        /* ESCÁNER NEÓN */
+        /* --- EL MEJOR BOTÓN (PARTÍCULAS) --- */
+        .otto-static-btn {
+            position: absolute; top: 15px; left: 15px;
+            width: 130px; height: 40px; background: #000;
+            border: 1px solid var(--neon); border-radius: 4px;
+            cursor: pointer; overflow: hidden;
+            display: flex; align-items: center; justify-content: center;
+            z-index: 100; box-shadow: 0 0 10px rgba(0, 243, 255, 0.2);
+        }
+        .btn-content { display: flex; align-items: center; gap: 8px; color: var(--neon); font-family: monospace; font-size: 11px; font-weight: bold; z-index: 5; }
+        .particles-box .p { position: absolute; width: 2px; height: 2px; background: var(--neon); border-radius: 50%; opacity: 0; animation: float-up 2s infinite linear; }
+        .particles-box .p:nth-child(1) { left: 20%; animation-delay: 0s; }
+        .particles-box .p:nth-child(2) { left: 50%; animation-delay: 0.5s; }
+        .particles-box .p:nth-child(3) { left: 80%; animation-delay: 1s; }
+        @keyframes float-up { 0% { transform: translateY(20px); opacity: 0; } 50% { opacity: 1; } 100% { transform: translateY(-30px); opacity: 0; } }
+        /* ---------------------------------- */
+
         .scan-line {
             position: absolute; top: 0; left: 0; width: 100%; height: 2px;
             background: var(--neon); box-shadow: 0 0 15px var(--neon);
@@ -24,36 +46,28 @@
         }
         @keyframes scan { 0% { top: 0; } 100% { top: 100%; } }
 
-        /* AREA DE CHAT CON AUTO-SCROLL */
         #log { 
-            flex: 1; overflow-y: auto; padding: 20px; 
+            flex: 1; overflow-y: auto; padding: 70px 20px 100px 20px; 
             display: flex; flex-direction: column; gap: 15px;
-            scroll-behavior: smooth; padding-bottom: 100px; 
+            scroll-behavior: smooth;
         }
 
-        /* BURBUJAS */
-        .bot-msg { background: #161618; border: 1px solid #222; border-radius: 25px; padding: 20px; border-bottom-left-radius: 2px; animation: slide 0.3s ease; align-self: flex-start; max-width: 85%; }
-        .user-msg { background: #222; color: var(--neon); align-self: flex-end; padding: 15px 20px; border-radius: 25px; border-bottom-right-radius: 2px; max-width: 80%; }
+        .bot-msg { background: #161618; border: 1px solid #222; border-radius: 20px; padding: 15px; align-self: flex-start; max-width: 85%; border-bottom-left-radius: 2px; }
+        .user-msg { background: #222; color: var(--neon); align-self: flex-end; padding: 12px 18px; border-radius: 20px; max-width: 80%; border-bottom-right-radius: 2px; }
         
-        @keyframes slide { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-
-        /* GRILLA DE BOTONES */
-        .menu-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px; }
+        .menu-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
         .btn-core {
-            background: #000; color: #fff; border: 1px solid #333; padding: 15px 5px;
-            border-radius: 15px; cursor: pointer; font-size: 11px; font-weight: bold;
-            transition: 0.3s; text-transform: uppercase; outline: none;
+            background: #000; color: #fff; border: 1px solid #333; padding: 12px 5px;
+            border-radius: 10px; cursor: pointer; font-size: 10px; font-weight: bold;
         }
-        .btn-core:hover { border-color: var(--neon); color: var(--neon); }
-        .btn-wa { grid-column: span 2; border-radius: 50px; border-color: #25d366; color: #25d366; margin-top: 10px; }
+        .btn-wa { grid-column: span 2; border-color: #25d366; color: #25d366; }
 
-        /* INPUT FIJO ABAJO */
         .input-area {
             position: fixed; bottom: 0; width: 100%; background: #0d0d0f;
-            padding: 20px; box-sizing: border-box; border-top: 1px solid #1a1a1c;
+            padding: 15px; box-sizing: border-box; border-top: 1px solid #1a1a1c;
         }
         input {
-            width: 100%; background: #111; border: 1px solid #333; padding: 18px;
+            width: 100%; background: #111; border: 1px solid #333; padding: 15px;
             border-radius: 50px; color: var(--neon); outline: none; font-size: 16px; text-align: center;
         }
     </style>
@@ -61,9 +75,19 @@
 <body>
 
 <div class="otto-frame">
-    <div class="scan-line"></div>
-    <div id="log">
+    <div class="otto-static-btn" onclick="window.history.back()">
+        <div class="particles-box">
+            <span class="p"></span><span class="p"></span><span class="p"></span>
         </div>
+        <div class="btn-content">
+            <span class="btn-arrow">⟸</span>
+            <span class="btn-text">ATRÁS</span>
+        </div>
+    </div>
+
+    <div class="scan-line"></div>
+    <div id="log"></div>
+    
     <div class="input-area">
         <input type="text" id="in" placeholder="ESCRIBE 'HOLA'..." autofocus autocomplete="off">
     </div>
@@ -74,16 +98,13 @@
     const log = document.getElementById('log');
     let botActive = false;
 
-    const saludos = ["hola", "buenas", "inicio", "menu", "hey"];
-
     function scroll() { log.scrollTop = log.scrollHeight; }
 
     input.addEventListener('keypress', (e) => {
         if (e.key === 'Enter' && input.value.trim() !== "") {
             const val = input.value.trim();
             renderMsg(val, 'user');
-            
-            if (saludos.includes(val.toLowerCase()) || !botActive) {
+            if (val.toLowerCase().includes("hola") || !botActive) {
                 setTimeout(renderMenu, 500);
                 botActive = true;
             } else {
@@ -102,24 +123,18 @@
     }
 
     function renderMenu() {
-        const menu = `
-            Hola soy  OTTO-BOT tu asistente virtual</b><br>Selecciona una categoría táctica:
+        const menu = `<b>OTTO-BOT Táctico</b><br>Selecciona categoría:
             <div class="menu-grid">
-                <button class="btn-core" onclick="exe('Vehiculos')">🚗 Vehicuulos</button>
+                <button class="btn-core" onclick="exe('Vehiculos')">🚗 Vehiculos</button>
                 <button class="btn-core" onclick="exe('Tecnologia')">💻 Tecnologia</button>
-                <button class="btn-core" onclick="exe(' Hogar')">🏠 Hogar</button>
+                <button class="btn-core" onclick="exe('Hogar')">🏠 Hogar</button>
                 <button class="btn-core" onclick="exe('Servicios')">🛠️ Servicios</button>
-                <button class="btn-core" onclick="exe('Otros')">📦 Otros</button>
-                <button class="btn-core" onclick="exe('Soporte')">🛡️ Soporte</button>
-                <button class="btn-core btn-wa" onclick="window.open('https://wa.me/50376511585')">💬 ASESOR WHATSAPP</button>
+                <button class="btn-core btn-wa" onclick="window.open('https://wa.me/50376511585')">💬 WHATSAPP</button>
             </div>`;
         renderMsg(menu, 'bot');
     }
 
-    function exe(t) {
-        renderMsg(t, 'user');
-        consultar(t);
-    }
+    function exe(t) { renderMsg(t, 'user'); consultar(t); }
 
     function consultar(t) {
         fetch('/bot/consultar/', {
@@ -128,10 +143,9 @@
             body: JSON.stringify({ texto: t })
         })
         .then(r => r.json())
-        .then(data => {
-            renderMsg(data.respuesta, 'bot');
-        });
+        .then(data => { renderMsg(data.respuesta, 'bot'); });
     }
 </script>
+
 </body>
 </html>

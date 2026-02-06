@@ -282,3 +282,45 @@ def bot_consulta(request):
 def pagina_bot(request):
     # Sin prefijos, directo al grano
     return render(request, 'bot_consulta.html')
+
+
+from django.shortcuts import render, get_object_or_404
+from django.db.models import Avg  # <--- IMPORTACIÓN VITAL 📡
+from .models import Publicacion, Resena
+
+def ver_opiniones(request, pk):
+    # Localizamos el objetivo en el sector
+    publicacion = get_object_or_404(Publicacion, pk=pk)
+    
+    # Extraemos todas las transmisiones (reseñas)
+    resenas = publicacion.resenas.all()
+    
+    # Cálculo del promedio sin el error de 'models.'
+    # Usamos Avg directamente porque ya lo importamos arriba
+    promedio_data = resenas.aggregate(Avg('puntuacion'))['puntuacion__avg']
+    
+    # Si no hay reseñas, el sistema marca 5.0 por defecto
+    promedio = round(promedio_data, 1) if promedio_data else 5.0
+    
+    context = {
+        'publicacion': publicacion,
+        'resenas': resenas,
+        'promedio': promedio
+    }
+    
+    return render(request, 'opiniones.html', context)
+
+
+def guardar_resena(request, pk):
+    if request.method == "POST":
+        publicacion = get_object_or_404(Publicacion, pk=pk)
+        puntuacion = request.POST.get('puntuacion', 5)
+        comentario = request.POST.get('comentario', '')
+        
+        Resena.objects.update_or_create(
+            publicacion=publicacion, 
+            autor=request.user,
+            defaults={'puntuacion': puntuacion, 'comentario': comentario}
+        )
+        # Al guardar, te manda directo al "laberinto" de opiniones
+        return redirect('ver_opiniones', pk=pk)

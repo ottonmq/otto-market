@@ -151,4 +151,94 @@
         options: { responsive:true, maintainAspectRatio:false, scales:{r:{grid:{color:'#222'},angleLines:{color:'#222'},ticks:{display:false},pointLabels:{color:'#00f2ff',font:{size:9, family:'monospace'}}}}, plugins:{legend:{display:false}} }
     });
 </script>
+
+<div class="otto-static-btn" onclick="window.history.back()">
+    <div class="particles-box">
+        <span class="p"></span><span class="p"></span><span class="p"></span><span class="p"></span><span class="p"></span>
+    </div>
+    <div class="btn-content">
+        <span class="scan-line-btn"></span>
+        <span class="btn-arrow">⟸</span>
+        <span class="btn-text">VOLVER</span>
+    </div>
+</div>
+
+<style>
+    /* CONTENEDOR DEL BOTÓN */
+    .otto-static-btn {
+        position: relative; /* YA NO ES FIXED */
+        width: 160px;
+        height: 48px;
+        background: #000;
+        border: 2px solid #00f2ff;
+        border-radius: 4px;
+        cursor: pointer;
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: 0.3s all;
+        margin: 10px 0; /* Espacio para que no pegue con lo demás */
+    }
+
+    .btn-content {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        color: #00f2ff;
+        font-family: 'Courier New', monospace;
+        font-weight: bold;
+        z-index: 5;
+    }
+
+    /* EFECTO ESCÁNER */
+    .scan-line-btn {
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(0, 242, 255, 0.4), transparent);
+        animation: scan-loop 2.5s infinite linear;
+    }
+
+    @keyframes scan-loop {
+        0% { left: -100%; }
+        100% { left: 100%; }
+    }
+
+    /* PARTÍCULAS */
+    .particles-box .p {
+        position: absolute;
+        width: 2px;
+        height: 2px;
+        background: #00f2ff;
+        border-radius: 50%;
+        opacity: 0;
+        animation: float-up 2s infinite linear;
+    }
+
+    .particles-box .p:nth-child(1) { left: 20%; animation-delay: 0s; }
+    .particles-box .p:nth-child(2) { left: 40%; animation-delay: 0.5s; }
+    .particles-box .p:nth-child(3) { left: 60%; animation-delay: 1s; }
+    .particles-box .p:nth-child(4) { left: 80%; animation-delay: 1.5s; }
+    .particles-box .p:nth-child(5) { left: 50%; animation-delay: 0.7s; }
+
+    @keyframes float-up {
+        0% { transform: translateY(25px); opacity: 0; }
+        50% { opacity: 1; }
+        100% { transform: translateY(-35px); opacity: 0; }
+    }
+
+    /* EFECTO AL TOCAR */
+    .otto-static-btn:active {
+        transform: scale(0.95);
+        box-shadow: 0 0 20px rgba(0, 242, 255, 0.5);
+    }
+    
+    .otto-static-btn:hover {
+        background: rgba(0, 242, 255, 0.1);
+    }
+</style>
+
 {% endblock %}
