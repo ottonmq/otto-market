@@ -13,7 +13,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 IS_TERMUX = 'com.termux' in os.environ.get('PREFIX', '')
 
 if IS_TERMUX:
-    # ELIMINAMOS EL BLOQUEO DE ARCHIVOS EN ANDROID
+    # ELIMINAMOS EL BLOQUEO DE ARCHIVOS EN ANDROID (SOLO PARA DESARROLLO)
     try:
         from django.core.files import locks
         locks.lock = lambda f, flags: True
@@ -22,7 +22,7 @@ if IS_TERMUX:
         pass
 
 # ==========================================================
-# 🔑 SEGURIDAD Y ACCESO
+# 🔑 SEGURIDAD Y ACCESO (CYBERPUNK SHIELD)
 # ==========================================================
 SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-otto-task-key-2026')
 DEBUG = True 
@@ -33,14 +33,14 @@ CSRF_TRUSTED_ORIGINS = ['https://*.render.com', 'https://otto-market.onrender.co
 # 🧩 MÓDULOS DEL SISTEMA (APPS) - EL ORDEN ES VITAL
 # ==========================================================
 INSTALLED_APPS = [
-    'cloudinary_storage', # Primero para interceptar MEDIA
+    'cloudinary_storage', # 🟢 PRIORITY: Intercepta MEDIA antes que static
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'cloudinary', # Motor de procesamiento
+    'cloudinary',          # 🟢 Motor de procesamiento
     'django.contrib.sites',
     'marketapp',
     'allauth',
@@ -100,26 +100,26 @@ STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
 
 # ==========================================================
-# 🛰️ CONEXIÓN MAESTRA CLOUDINARY (ANTI-BORRADO)
+# 🛰️ CONEXIÓN MAESTRA CLOUDINARY (KEYS ACTUALIZADAS)
 # ==========================================================
 if not IS_TERMUX:
     # 1. Motor de almacenamiento para archivos subidos
     DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
     
-    # 2. Inicialización Global (Mata el error de cloud_name en HTML)
-    cloudinary.config(
-        cloud_name = "dmfhdilyd",
-        api_key = "642517876794157",
-        api_secret = "J2mI_u549p79q9KPr7mXqK6I8Yk",
-        secure = True
-    )
-    
-    # 3. Configuración del Storage Backend
+    # 2. Configuración del Storage Backend (USANDO TUS NUEVAS KEYS)
     CLOUDINARY_STORAGE = {
         'CLOUD_NAME': 'dmfhdilyd',
         'API_KEY': '223926243589726',
         'API_SECRET': '5J3GsVsYrr8ecpXoJKdBD-LpaQ4',
     }
+
+    # 3. Inicialización Global (Uso de las mismas llaves nuevas)
+    cloudinary.config(
+        cloud_name = "dmfhdilyd",
+        api_key = "223926243589726",
+        api_secret = "5J3GsVsYrr8ecpXoJKdBD-LpaQ4",
+        secure = True
+    )
 else:
     # Modo Local / Desarrollo
     DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
@@ -139,4 +139,6 @@ ACCOUNT_EMAIL_VERIFICATION = 'none'
 LOGIN_REDIRECT_URL = 'home'
 LOGOUT_REDIRECT_URL = 'home'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# FINAL DEL ARCHIVO - SOLICITUD DE DMFHDILYD
 SOCIALACCOUNT_LOGIN_ON_GET = True
