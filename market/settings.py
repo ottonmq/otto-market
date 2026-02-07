@@ -117,8 +117,8 @@ if not IS_TERMUX:
     # 3. Configuración del Storage Backend
     CLOUDINARY_STORAGE = {
         'CLOUD_NAME': 'dmfhdilyd',
-        'API_KEY': '642517876794157',
-        'API_SECRET': 'J2mI_u549p79q9KPr7mXqK6I8Yk'
+        'API_KEY': '223926243589726',
+        'API_SECRET': '5J3GsVsYrr8ecpXoJKdBD-LpaQ4',
     }
 else:
     # Modo Local / Desarrollo
