@@ -42,38 +42,65 @@ def logout_view(request):
 
 # --- 2. NAVEGACIÓN PÚBLICA ---
 
-def home(request):
-    # LLAMADA AL CONTADOR
-    nodos_activos, trafico_total = obtener_conteo_red()
+from django.db.models import Avg, Count, Q
 
+def home(request):
+    # 1. Tu lógica de red intacta
+    nodos_activos, trafico_total = obtener_conteo_red()
     query = request.GET.get('q', '').strip()
-    # Tu lógica original intacta para que el menú no muera
     categorias = Categoria.objects.all()
-    anuncios = Publicacion.objects.filter(vendido=False)
+
+    # 2. FILTRADO + CÁLCULO DE ESTRELLAS (Aquí está la magia)
+    # Usamos annotate para que cada anuncio traiga su propio promedio y total
+    anuncios = Publicacion.objects.filter(vendido=False).annotate(
+        promedio_estrellas=Avg('resenas__puntuacion'),
+        total_resenas=Count('resenas')
+    )
 
     if query:
-        # Buscamos en título, marca O nombre de categoría (Tus filtros)
         anuncios = anuncios.filter(
             Q(titulo__icontains=query) | 
             Q(marca__icontains=query) | 
             Q(categoria__nombre__icontains=query)
         ).distinct()
 
-    # Retorno con tus datos originales + las nuevas variables del contador
+    # 3. REDONDEO (Para que no salga 4.3333333)
+    # Esto prepara los datos antes de mandarlos al HTML
+    for a in anuncios:
+        a.promedio_estrellas = round(a.promedio_estrellas, 1) if a.promedio_estrellas else 0.0
+
     return render(request, 'home.html', {
         'anuncios': anuncios.order_by('-fecha_creacion'),
-        'categorias': categorias, # Esto es lo que hace funcionar tus botones
+        'categorias': categorias,
         'query': query,
-        # Estas son las variables para tu base.html o home.html
         'online': nodos_activos if nodos_activos > 0 else 1,
         'vistas': trafico_total
     })
 
+
 def detalle_anuncio(request, pk):
+    # Traemos el anuncio (mantenemos tu nombre de variable 'anuncio')
     anuncio = get_object_or_404(Publicacion, pk=pk)
+    
+    # Contador de vistas (tu lógica original)
     anuncio.vistas = (anuncio.vistas or 0) + 1
     anuncio.save()
-    return render(request, 'detalle.html', {'anuncio': anuncio, 'galeria': anuncio.fotos.all()})
+    
+    # --- AGREGAMOS EL CÁLCULO DE ESTRELLAS ---
+    resenas = anuncio.resenas.all()
+    total = resenas.count()
+    promedio_data = resenas.aggregate(Avg('puntuacion'))['puntuacion__avg']
+    promedio = round(promedio_data, 1) if promedio_data else 0.0
+    
+    # Pasamos todo al HTML
+    return render(request, 'detalle.html', {
+        'anuncio': anuncio, 
+        'galeria': anuncio.fotos.all(),
+        'promedio': promedio,
+        'total': total
+    })
+
+    
 
 # --- 3. ESTADÍSTICAS (OTTO-MARKET) ---
 def stats_global(request):
