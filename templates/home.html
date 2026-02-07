@@ -372,31 +372,6 @@
         ${{ anuncio.precio|default:"0.00" }}
     </span>
 </div>
-
-   
-   
-   
-   
-   
-   
-<div class="otto-radar-fix">
-    <form method="POST" class="nano-form-left">
-        {% csrf_token %}
-        <div class="nano-star-cluster">
-            <input type="radio" name="estrellas" value="5" id="z5-{{ anuncio.id }}"><label for="z5-{{ anuncio.id }}">★</label>
-            <input type="radio" name="estrellas" value="4" id="z4-{{ anuncio.id }}"><label for="z4-{{ anuncio.id }}">★</label>
-            <input type="radio" name="estrellas" value="3" id="z3-{{ anuncio.id }}"><label for="z3-{{ anuncio.id }}">★</label>
-            <input type="radio" name="estrellas" value="2" id="z2-{{ anuncio.id }}"><label for="z2-{{ anuncio.id }}">★</label>
-            <input type="radio" name="estrellas" value="1" id="z1-{{ anuncio.id }}"><label for="z1-{{ anuncio.id }}">★</label>
-        </div>
-        
-        <div class="nano-input-group">
-            <input type="text" name="comentario" placeholder="Calificar....." class="nano-input-field" required>
-            <button type="submit" class="nano-save-icon">💾</button>
-        </div>
-    </form>
-</div>
-
 <style>
     /* 1. LIMITADOR DE ANCHO PARA NO ROMPER LAS 2 COLUMNAS */
     .otto-radar-fix {
