@@ -320,8 +320,31 @@
     {% endfor %}
 </div>
  
+ 
+    
+
+
+ 
+ 
+
+
+    
+        
+
+
+
+
+
+
+
+
+
+
+
+          
 <div id="real-content" class="market-container" style="display: none;">
     {% for anuncio in anuncios %}
+
     <div class="product-card">
         <div class="img-container">
             <div class="unit-label">{{ anuncio.tipo_negocio| default:"venta" }}</div>
@@ -339,9 +362,10 @@
     {{ anuncio.modelo|default:"-----" }}
     <br>
     {{ anuncio.estado_fisico|default:"-----"}}
+    <br>
+    
 </div>
 
-   <div class="price-display">${{ anuncio.precio| default:"" }}</div>
    
    
    
@@ -449,7 +473,7 @@
         padding: 10px;
         text-decoration: none;
         font-weight: bold;
-        font-size: 8px;
+        font-size: 14px;
         letter-spacing: 1px;
         text-transform: uppercase;
         box-shadow: 0 0 5px rgba(0, 242, 255, 0.2);
@@ -466,7 +490,7 @@
 
 
 <a href="{% url 'detalle' anuncio.id %}" 
-   class="action-button" 
+   class="action-button" style="font-size: 14px;"
    onclick="showOttoNotification('ACCEDIENDO_A_DATOS_RESERVADOS...', 'info')">
     DETALLES 
 </a>
