@@ -288,26 +288,48 @@ from django.shortcuts import render, get_object_or_404
 from django.db.models import Avg  # <--- IMPORTACIÓN VITAL 📡
 from .models import Publicacion, Resena
 
+from django.db.models import Avg
+
 def ver_opiniones(request, pk):
-    # Localizamos el objetivo en el sector
+    # Usamos tu modelo Publicacion
     publicacion = get_object_or_404(Publicacion, pk=pk)
     
-    # Extraemos todas las transmisiones (reseñas)
+    # GUARDAR O ACTUALIZAR (Gracias al unique_together que pusiste)
+    if request.method == "POST":
+        puntos = request.POST.get('puntuacion', 5)
+        texto = request.POST.get('comentario', '')
+        
+        if texto:
+            # Usamos tus campos exactos: publicacion, autor, puntuacion, comentario
+            Resena.objects.update_or_create(
+                publicacion=publicacion, 
+                autor=request.user,
+                defaults={
+                    'puntuacion': int(puntos), 
+                    'comentario': texto
+                }
+            )
+            return redirect('ver_opiniones', pk=pk)
+
+    # CÁLCULOS REALES PARA LAS BARRAS AZULES
     resenas = publicacion.resenas.all()
-    
-    # Cálculo del promedio sin el error de 'models.'
-    # Usamos Avg directamente porque ya lo importamos arriba
+    total = resenas.count()
     promedio_data = resenas.aggregate(Avg('puntuacion'))['puntuacion__avg']
-    
-    # Si no hay reseñas, el sistema marca 5.0 por defecto
-    promedio = round(promedio_data, 1) if promedio_data else 5.0
-    
+    promedio = round(promedio_data, 1) if promedio_data else 0.0
+
+    # Porcentajes reales para el ancho de las barras
+    def get_pct(n):
+        if total == 0: return 0
+        return (resenas.filter(puntuacion=n).count() / total) * 100
+
     context = {
         'publicacion': publicacion,
         'resenas': resenas,
-        'promedio': promedio
+        'promedio': promedio,
+        'total': total,
+        'b5': get_pct(5), 'b4': get_pct(4), 'b3': get_pct(3), 
+        'b2': get_pct(2), 'b1': get_pct(1),
     }
-    
     return render(request, 'opiniones.html', context)
 
 
