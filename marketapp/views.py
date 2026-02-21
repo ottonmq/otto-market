@@ -268,42 +268,7 @@ from .models import Publicacion
 import json
 
 
-@csrf_exempt
-def bot_consulta(request):
-    if request.method == 'POST':
-        try:
-            data = json.loads(request.body)
-            texto = data.get('texto', data.get('body', '')).lower().strip()
-            
-            if not texto:
-                return JsonResponse({'respuesta': "🤖 [SISTEMA]: Esperando comando..."})
 
-            # Búsqueda avanzada
-            productos = Publicacion.objects.filter(
-                Q(titulo__icontains=texto) | 
-                Q(marca__icontains=texto) |
-                Q(categoria__nombre__icontains=texto),
-                vendido=False
-            )[:3]
-
-            if productos:
-                res = "⚡ **OTTO-MARKET // SUMINISTROS** ⚡<br>"
-                for p in productos:
-                    # CORRECCIÓN AQUÍ: Se usa 'p.foto' porque así se llama en tu Model
-                    if p.foto:
-                        res += f'<img src="{p.foto.url}" style="width:100%; border-radius:15px; border:1px solid #00f3ff; margin:10px 0; box-shadow: 0 0 10px #00f3ff44;">'
-                    
-                    res += f"📦 **{p.titulo.upper()}**<br>💰 PRECIO: ${p.precio}<br>🔹 MARCA: {p.marca}<br>"
-                    res += "────────────────────<br>"
-                res += "<br> [SISTEMA]: Datos extraídos con éxito."
-            else:
-                res = "⚠️ [ERROR]: No se detectan suministros. Intenta con otra palabra clave."
-                
-            return JsonResponse({'respuesta': res})
-        except Exception as e:
-            return JsonResponse({'respuesta': f"💀 [CRITICAL_ERROR]: {str(e)}"}, status=400)
-    
-    return JsonResponse({'error': 'Método no permitido'}, status=405)
 
 
 def pagina_bot(request):
@@ -358,6 +323,67 @@ def ver_opiniones(request, pk):
         'b2': get_pct(2), 'b1': get_pct(1),
     }
     return render(request, 'opiniones.html', context)
+
+@csrf_exempt
+def bot_consulta(request):
+    if request.method == 'POST':
+        try:
+            import requests
+            from django.conf import settings
+            
+            data = json.loads(request.body)
+            # Mantenemos tu lógica de limpieza de texto
+            texto = data.get('texto', data.get('body', '')).strip()
+            texto_lower = texto.lower()
+            
+            if not texto:
+                return JsonResponse({'respuesta': "🤖 [SISTEMA]: Esperando comando..."})
+
+            # --- NIVEL 1: ESCÁNER DE SUMINISTROS (Tu lógica original) ---
+            productos = Publicacion.objects.filter(
+                Q(titulo__icontains=texto_lower) | 
+                Q(marca__icontains=texto_lower) |
+                Q(categoria__nombre__icontains=texto_lower),
+                vendido=False
+            )[:3]
+
+            if productos:
+                res = "⚡ **OTTO-MARKET // SUMINISTROS** ⚡<br>"
+                for p in productos:
+                    if p.foto:
+                        res += f'<img src="{p.foto.url}" style="width:100%; border-radius:15px; border:1px solid #00f3ff; margin:10px 0; box-shadow: 0 0 10px #00f3ff44;">'
+                    res += f"📦 **{p.titulo.upper()}**<br>💰 PRECIO: ${p.precio}<br>🔹 MARCA: {p.marca}<br>"
+                    res += "────────────────────<br>"
+                res += "<br> [SISTEMA]: Datos extraídos localmente."
+                return JsonResponse({'respuesta': res})
+
+            # --- NIVEL 2: PROTOCOLO SHADOW (Si no hay productos, habla la IA) ---
+            url = "https://api.airia.ai/api/v1/agent/run"
+            headers = {
+                "Authorization": f"Bearer {settings.AIRIA_API_KEY}",
+                "Content-Type": "application/json"
+            }
+            payload = {
+                "prompt": texto,
+                "agent_id": settings.SHADOW_AGENT_ID
+            }
+            
+            # Llamada al búnker de Airia
+            response = requests.post(url, json=payload, headers=headers, timeout=10)
+            
+            if response.status_code == 200:
+                shadow_res = response.json().get('output', 'Shadow está procesando en las sombras...')
+                # Devolvemos la respuesta de la IA con estilo
+                return JsonResponse({'respuesta': f"👤 **SHADOW**: {shadow_res}"})
+            else:
+                return JsonResponse({'respuesta': "⚠️ [ERROR]: Enlace con Shadow interrumpido. Verifica la API Key."})
+
+        except Exception as e:
+            return JsonResponse({'respuesta': f"💀 [CRITICAL_ERROR]: {str(e)}"}, status=400)
+    
+    return JsonResponse({'error': 'Método no permitido'}, status=405)
+
+
 
 
 def guardar_resena(request, pk):
