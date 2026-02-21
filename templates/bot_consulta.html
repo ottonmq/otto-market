@@ -1,0 +1,207 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Otto-Bot Elite // Shadow</title>
+    <style>
+        :root { --neon: #00f3ff; --bg: #050505; --card: #0d0d0f; --border: #1a1a1c; }
+        
+        /* ESTRUCTURA CYBERPUNK */
+        html, body { 
+            height: 100%; margin: 0; padding: 0; 
+            background: var(--bg); color: #fff; 
+            font-family: 'Segoe UI', sans-serif; 
+            overflow: hidden; 
+        }
+
+        .otto-frame {
+            width: 100vw; height: 100vh; background: var(--card);
+            display: flex; flex-direction: column; position: relative;
+        }
+
+        /* --- BOTÓN DE PARTÍCULAS (OPTIMIZADO) --- */
+        .otto-static-btn {
+            position: absolute; top: 15px; left: 15px;
+            width: 130px; height: 40px; background: #000;
+            border: 1px solid var(--neon); border-radius: 4px;
+            cursor: pointer; overflow: hidden;
+            display: flex; align-items: center; justify-content: center;
+            z-index: 100; box-shadow: 0 0 10px rgba(0, 243, 255, 0.3);
+            transition: 0.3s;
+        }
+        .otto-static-btn:active { transform: scale(0.95); box-shadow: 0 0 20px var(--neon); }
+
+        .btn-content { display: flex; align-items: center; gap: 8px; color: var(--neon); font-family: monospace; font-size: 11px; font-weight: bold; z-index: 5; pointer-events: none; }
+        
+        .particles-box .p { position: absolute; width: 2px; height: 2px; background: var(--neon); border-radius: 50%; opacity: 0; animation: float-up 2s infinite linear; }
+        .particles-box .p:nth-child(1) { left: 20%; animation-delay: 0s; }
+        .particles-box .p:nth-child(2) { left: 50%; animation-delay: 0.5s; }
+        .particles-box .p:nth-child(3) { left: 80%; animation-delay: 1s; }
+        
+        @keyframes float-up { 0% { transform: translateY(20px); opacity: 0; } 50% { opacity: 1; } 100% { transform: translateY(-30px); opacity: 0; } }
+
+        /* ESCÁNER Y LOG */
+        .scan-line {
+            position: absolute; top: 0; left: 0; width: 100%; height: 2px;
+            background: var(--neon); box-shadow: 0 0 15px var(--neon);
+            opacity: 0.1; animation: scan 4s infinite linear; z-index: 10; pointer-events: none;
+        }
+        @keyframes scan { 0% { top: 0; } 100% { top: 100%; } }
+
+        #log { 
+            flex: 1; overflow-y: auto; padding: 75px 20px 100px 20px; 
+            display: flex; flex-direction: column; gap: 15px;
+            scroll-behavior: smooth;
+        }
+
+        /* MENSAJES */
+        .bot-msg { 
+            background: #161618; border: 1px solid #222; border-left: 2px solid var(--neon);
+            border-radius: 20px; padding: 15px; align-self: flex-start; 
+            max-width: 85%; border-bottom-left-radius: 2px;
+            box-shadow: 0 0 10px rgba(0, 243, 255, 0.05);
+        }
+        .user-msg { 
+            background: #222; color: var(--neon); align-self: flex-end; 
+            padding: 12px 18px; border-radius: 20px; 
+            max-width: 80%; border-bottom-right-radius: 2px;
+            border: 1px solid rgba(0, 243, 255, 0.2);
+        }
+        
+        /* MENÚ TÁCTICO */
+        .menu-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 12px; }
+        .btn-core {
+            background: #000; color: #fff; border: 1px solid #333; padding: 12px 5px;
+            border-radius: 10px; cursor: pointer; font-size: 10px; font-weight: bold;
+            transition: 0.2s;
+        }
+        .btn-core:hover { border-color: var(--neon); color: var(--neon); background: #080808; }
+        .btn-wa { grid-column: span 2; border-color: #25d366; color: #25d366; }
+
+        /* INPUT AREA */
+        .input-area {
+            position: fixed; bottom: 0; width: 100%; background: #0d0d0f;
+            padding: 15px; box-sizing: border-box; border-top: 1px solid #1a1a1c;
+            z-index: 100;
+        }
+        input {
+            width: 100%; background: #111; border: 1px solid #333; padding: 15px;
+            border-radius: 50px; color: var(--neon); outline: none; font-size: 16px; 
+            text-align: center; box-shadow: inset 0 0 5px #000;
+        }
+        input:focus { border-color: var(--neon); box-shadow: 0 0 10px rgba(0, 243, 255, 0.2); }
+
+        .status-blink { color: var(--neon); animation: blink 1.5s infinite; font-weight: bold; }
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+    </style>
+</head>
+<body>
+
+<div class="otto-frame">
+    <div class="otto-static-btn" onclick="window.history.back()">
+        <div class="particles-box">
+            <span class="p"></span><span class="p"></span><span class="p"></span>
+        </div>
+        <div class="btn-content">
+            <span class="btn-arrow">⟸</span>
+            <span class="btn-text">ATRÁS</span>
+        </div>
+    </div>
+
+    <div class="scan-line"></div>
+    <div id="log"></div>
+    
+    <div class="input-area">
+        <input type="text" id="in" placeholder="DICE 'HOLA' O PREGUNTA A SHADOW..." autofocus autocomplete="off">
+    </div>
+</div>
+
+<script>
+    const input = document.getElementById('in');
+    const log = document.getElementById('log');
+    let botActive = false;
+
+    function scroll() { log.scrollTop = log.scrollHeight; }
+
+    input.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter' && input.value.trim() !== "") {
+            const val = input.value.trim();
+            renderMsg(val, 'user');
+            
+            // Si el usuario saluda por primera vez, activamos el menú
+            if (val.toLowerCase().includes("hola") && !botActive) {
+                setTimeout(renderMenu, 500);
+                botActive = true;
+            } else {
+                // Cualquier otra consulta va directa a la IA Shadow
+                consultar(val);
+            }
+            input.value = '';
+        }
+    });
+
+    function renderMsg(t, type) {
+        const div = document.createElement('div');
+        div.className = type === 'user' ? 'user-msg' : 'bot-msg';
+        div.innerHTML = t;
+        log.appendChild(div);
+        scroll();
+    }
+
+    function renderMenu() {
+        const menu = `<b>SISTEMA OTTO-BOT</b><br>ESTADO: <span class="status-blink">CONECTADO</span><br><br>Selecciona un sector o hazme cualquier pregunta sobre el búnker:
+            <div class="menu-grid">
+                <button class="btn-core" onclick="exe('Vehiculos')">🚗 Vehiculos</button>
+                <button class="btn-core" onclick="exe('Tecnologia')">💻 Tecnologia</button>
+                <button class="btn-core" onclick="exe('Hogar')">🏠 Hogar</button>
+                <button class="btn-core" onclick="exe('Servicios')">🛠️ Servicios</button>
+                <button class="btn-core btn-wa" onclick="window.open('https://wa.me/50376511585')">💬 WHATSAPP</button>
+            </div>`;
+        renderMsg(menu, 'bot');
+    }
+
+    function exe(t) { renderMsg(t, 'user'); consultar(t); }
+
+    function consultar(t) {
+        // Indicador de procesamiento Cyberpunk
+        const loadId = "load-" + Date.now();
+        renderMsg("<span id='"+loadId+"' style='color:var(--neon)'>🛰️ PROCESANDO ENLACE...</span>", 'bot');
+
+        fetch('/bot/consultar/', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token }}'},
+            body: JSON.stringify({ texto: t })
+        })
+        .then(r => r.json())
+        .then(data => { 
+            // Reemplazamos el cargando con la respuesta de Shadow
+            const loadElem = document.getElementById(loadId);
+            if(loadElem) {
+                loadElem.parentElement.innerHTML = data.respuesta;
+            }
+            scroll();
+        })
+        .catch(err => {
+            const loadElem = document.getElementById(loadId);
+            if(loadElem) {
+                loadElem.parentElement.innerHTML = "💀 ERROR_CRÍTICO: No hay respuesta del búnker.";
+            }
+        });
+    }
+
+    // Saludo inicial de Shadow al cargar
+        // Saludo inicial de Shadow al cargar con el nombre del usuario real
+    window.onload = () => {
+        setTimeout(() => {
+            // Usamos la etiqueta de Django para traer el nombre del usuario
+            const userName = "{{ request.user.username|default:'Invitado' }}";
+            renderMsg(`Bienvenido al búnker, <b>${userName}</b>. Soy Shadow. ¿En qué puedo asistirte hoy?`, 'bot');
+        }, 1000);
+    };
+
+</script>
+
+</body>
+</html>
