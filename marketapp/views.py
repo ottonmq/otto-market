@@ -324,26 +324,27 @@ def ver_opiniones(request, pk):
     }
     return render(request, 'opiniones.html', context)
 
+
+
 @csrf_exempt
 def bot_consulta(request):
     if request.method == 'POST':
         try:
             import requests
-            from django.conf import settings
-            
+            import os # Asegúrate de tener import os arriba
+
             data = json.loads(request.body)
-            # Mantenemos tu lógica de limpieza de texto
-            texto = data.get('texto', data.get('body', '')).strip()
-            texto_lower = texto.lower()
+            # Normalizamos la entrada de texto
+            texto = data.get('texto', '').strip()
             
             if not texto:
                 return JsonResponse({'respuesta': "🤖 [SISTEMA]: Esperando comando..."})
 
-            # --- NIVEL 1: ESCÁNER DE SUMINISTROS (Tu lógica original) ---
+            # --- NIVEL 1: ESCÁNER DE SUMINISTROS (Otto-Market Local) ---
             productos = Publicacion.objects.filter(
-                Q(titulo__icontains=texto_lower) | 
-                Q(marca__icontains=texto_lower) |
-                Q(categoria__nombre__icontains=texto_lower),
+                Q(titulo__icontains=texto) | 
+                Q(marca__icontains=texto) |
+                Q(categoria__nombre__icontains=texto),
                 vendido=False
             )[:3]
 
@@ -351,37 +352,39 @@ def bot_consulta(request):
                 res = "⚡ **OTTO-MARKET // SUMINISTROS** ⚡<br>"
                 for p in productos:
                     if p.foto:
-                        res += f'<img src="{p.foto.url}" style="width:100%; border-radius:15px; border:1px solid #00f3ff; margin:10px 0; box-shadow: 0 0 10px #00f3ff44;">'
-                    res += f"📦 **{p.titulo.upper()}**<br>💰 PRECIO: ${p.precio}<br>🔹 MARCA: {p.marca}<br>"
-                    res += "────────────────────<br>"
-                res += "<br> [SISTEMA]: Datos extraídos localmente."
+                        res += f'<img src="{p.foto.url}" style="width:100%; border-radius:15px; border:1px solid #00f3ff; margin:10px 0;">'
+                    res += f"📦 **{p.titulo.upper()}**<br>💰 PRECIO: ${p.precio}<br>"
                 return JsonResponse({'respuesta': res})
 
-            # --- NIVEL 2: PROTOCOLO SHADOW (Si no hay productos, habla la IA) ---
-            url = "https://api.airia.ai/api/v1/agent/run"
+            # --- NIVEL 2: PROTOCOLO SHADOW (NUEVA CONEXIÓN AIRIA) ---
+            # ACTUALIZA ESTA URL con la que te dio el botón 'Integrate' de tu nuevo agente
+            url_airia = "https://api.airia.ai/v1/agent/TU_NUEVO_ID_AQUÍ/chat"
+            
             headers = {
-                "Authorization": f"Bearer {settings.AIRIA_API_KEY}",
+                "Authorization": f"Bearer {os.getenv('AIRIA_API_KEY')}",
                 "Content-Type": "application/json"
             }
+            
+            # Airia v2 espera 'message', no 'prompt'
             payload = {
-                "prompt": texto,
-                "agent_id": settings.SHADOW_AGENT_ID
+                "message": texto,
+                "stream": False
             }
-            
-            # Llamada al búnker de Airia
-            response = requests.post(url, json=payload, headers=headers, timeout=10)
-            
+
+            response = requests.post(url_airia, json=payload, headers=headers, timeout=15)
+
             if response.status_code == 200:
+                # Extraemos 'output', que es donde Shadow envía su respuesta
                 shadow_res = response.json().get('output', 'Shadow está procesando en las sombras...')
-                # Devolvemos la respuesta de la IA con estilo
                 return JsonResponse({'respuesta': f"👤 **SHADOW**: {shadow_res}"})
             else:
-                return JsonResponse({'respuesta': "⚠️ [ERROR]: Enlace con Shadow interrumpido. Verifica la API Key."})
+                return JsonResponse({'respuesta': f"⚠️ [ERROR]: Código {response.status_code} - Revisa URL y Key en Render."})
 
         except Exception as e:
             return JsonResponse({'respuesta': f"💀 [CRITICAL_ERROR]: {str(e)}"}, status=400)
-    
+
     return JsonResponse({'error': 'Método no permitido'}, status=405)
+
 
 
 
