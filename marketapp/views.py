@@ -356,8 +356,9 @@ def bot_consulta(request):
                 return JsonResponse({'respuesta': res})
 
             # --- 2. PROTOCOLO SHADOW (CONEXIÓN AIRIA) ---
-            # IMPORTANTE: Reemplaza esta URL con la que te da Airia en 'Integrate'
-            url_airia = "https://api.airia.ai/v1/agent/ag-1739063548950-8919-b4d4-b3e9-7cf084b69d5d/chat" # <--- ASEGÚRATE QUE SEA ESTA
+# La URL correcta para tu agente Shadow Elite
+url_airia = "https://api.airia.ai/v1/agent/b5966a34-8f80-4b9b-a1bd-8e559cc86b0f/chat"
+
             
             headers = {
                 "Authorization": f"Bearer {os.getenv('AIRIA_API_KEY')}",
