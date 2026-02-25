@@ -326,21 +326,22 @@ def ver_opiniones(request, pk):
 
 
 
+
 @csrf_exempt
 def bot_consulta(request):
     if request.method == 'POST':
         try:
             import requests
-            import os # Asegúrate de tener import os arriba
+            import os
+            import json
 
             data = json.loads(request.body)
-            # Normalizamos la entrada de texto
             texto = data.get('texto', '').strip()
             
             if not texto:
                 return JsonResponse({'respuesta': "🤖 [SISTEMA]: Esperando comando..."})
 
-            # --- NIVEL 1: ESCÁNER DE SUMINISTROS (Otto-Market Local) ---
+            # --- 1. ESCÁNER LOCAL (PRODUCTOS) ---
             productos = Publicacion.objects.filter(
                 Q(titulo__icontains=texto) | 
                 Q(marca__icontains=texto) |
@@ -351,21 +352,18 @@ def bot_consulta(request):
             if productos:
                 res = "⚡ **OTTO-MARKET // SUMINISTROS** ⚡<br>"
                 for p in productos:
-                    if p.foto:
-                        res += f'<img src="{p.foto.url}" style="width:100%; border-radius:15px; border:1px solid #00f3ff; margin:10px 0;">'
-                    res += f"📦 **{p.titulo.upper()}**<br>💰 PRECIO: ${p.precio}<br>"
+                    res += f"📦 **{p.titulo.upper()}** - ${p.precio}<br>"
                 return JsonResponse({'respuesta': res})
 
-            # --- NIVEL 2: PROTOCOLO SHADOW (NUEVA CONEXIÓN AIRIA) ---
-            # ACTUALIZA ESTA URL con la que te dio el botón 'Integrate' de tu nuevo agente
-            url_airia = "https://api.airia.ai/v1/agent/TU_NUEVO_ID_AQUÍ/chat"
+            # --- 2. PROTOCOLO SHADOW (CONEXIÓN AIRIA) ---
+            # IMPORTANTE: Reemplaza esta URL con la que te da Airia en 'Integrate'
+            url_airia = "https://api.airia.ai/v1/agent/ag-1739063548950-8919-b4d4-b3e9-7cf084b69d5d/chat" # <--- ASEGÚRATE QUE SEA ESTA
             
             headers = {
                 "Authorization": f"Bearer {os.getenv('AIRIA_API_KEY')}",
                 "Content-Type": "application/json"
             }
             
-            # Airia v2 espera 'message', no 'prompt'
             payload = {
                 "message": texto,
                 "stream": False
@@ -374,14 +372,14 @@ def bot_consulta(request):
             response = requests.post(url_airia, json=payload, headers=headers, timeout=15)
 
             if response.status_code == 200:
-                # Extraemos 'output', que es donde Shadow envía su respuesta
-                shadow_res = response.json().get('output', 'Shadow está procesando en las sombras...')
+                # El campo suele ser 'output' en la versión nueva
+                shadow_res = response.json().get('output', 'Shadow está procesando...')
                 return JsonResponse({'respuesta': f"👤 **SHADOW**: {shadow_res}"})
             else:
-                return JsonResponse({'respuesta': f"⚠️ [ERROR]: Código {response.status_code} - Revisa URL y Key en Render."})
+                return JsonResponse({'respuesta': f"⚠️ [ERROR]: Código {response.status_code}. Revisa el ID en views.py"})
 
         except Exception as e:
-            return JsonResponse({'respuesta': f"💀 [CRITICAL_ERROR]: {str(e)}"}, status=400)
+            return JsonResponse({'respuesta': f"💀 [FALLO_NEURAL]: {str(e)}"})
 
     return JsonResponse({'error': 'Método no permitido'}, status=405)
 
