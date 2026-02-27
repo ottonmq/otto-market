@@ -182,41 +182,31 @@ def bot_consulta(request):
             data = json.loads(request.body)
             texto = data.get('texto', '').strip()
 
-            if not texto:
-                return JsonResponse({'respuesta': "🤖 [SISTEMA]: Esperando comando..."})
-
-            # ESCÁNER LOCAL
+            # ESCÁNER DINÁMICO: Filtra por el texto exacto del botón o búsqueda
+            # Ahora busca específicamente en el nombre de la categoría
             productos = Publicacion.objects.filter(
-                Q(titulo__icontains=texto) | Q(marca__icontains=texto) | Q(categoria__nombre__icontains=texto),
+                Q(categoria__nombre__icontains=texto) | Q(titulo__icontains=texto),
                 vendido=False
-            )[:3]
+            )[:5]
 
             if productos:
-                res = "⚡ **OTTO-MARKET // SUMINISTROS** ⚡<br>"
+                res = f"⚡ **OTTO-MARKET // {texto.upper()}** ⚡<br>"
                 for p in productos:
                     res += f"📦 **{p.titulo.upper()}** - ${p.precio}<br>"
                 return JsonResponse({'respuesta': res})
-
-            # CONEXIÓN AIRIA SHADOW
-            url_airia = "https://api.airia.ai/v1/agent/b5966a34-8f80-4b9b-a1bd-8e559cc86b0f/chat"
-
-            headers = {
-                "Authorization": f"Bearer {os.getenv('AIRIA_API_KEY')}",
-                "Content-Type": "application/json"
-            }
-
-            payload = {"message": texto, "stream": False}
-            response = requests.post(url_airia, json=payload, headers=headers, timeout=15)
-
-            if response.status_code == 200:
-                shadow_res = response.json().get('output', 'Shadow está procesando...')
-                return JsonResponse({'respuesta': f"👤 **SHADOW**: {shadow_res}"})
-            else:
-                return JsonResponse({'respuesta': f"⚠️ [ERROR]: Código {response.status_code}. Revisa Airia."})
+            
+            # Si no hay productos, intentamos con el Agente (Gumloop)
+            # URL_GUMLOOP = "AQUÍ_VA_TU_NUEVO_WEBHOOK" 
+            return JsonResponse({'respuesta': f"🔍 No hay suministros en **{texto}** por ahora."})
 
         except Exception as e:
             return JsonResponse({'respuesta': f"💀 [FALLO_NEURAL]: {str(e)}"})
     return JsonResponse({'error': 'Método no permitido'}, status=405)
+
+
+
+
+
 
 def pagina_bot(request):
     return render(request, 'bot_consulta.html')
