@@ -257,3 +257,39 @@ def guardar_resena(request, pk):
         )
         return redirect('ver_opiniones', pk=pk)
 
+@login_required
+def gestionar_anuncio(request, pk):
+    anuncio = get_object_or_404(Publicacion, pk=pk, vendedor=request.user)
+    if request.method == 'POST':
+        form = PublicacionForm(request.POST, request.FILES, instance=anuncio)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "UNIDAD_MODIFICADA")
+            return redirect('perfil')
+    else:
+        form = PublicacionForm(instance=anuncio)
+    return render(request, 'vender_hardware.html', {'form': form, 'editando': True})
+
+@login_required
+def eliminar_anuncio(request, pk):
+    anuncio = get_object_or_404(Publicacion, pk=pk, vendedor=request.user)
+    anuncio.delete()
+    messages.warning(request, "UNIDAD_ELIMINADA")
+    return redirect('perfil')
+
+@login_required
+def reactivar_anuncio(request, anuncio_id):
+    anuncio = get_object_or_404(Publicacion, id=anuncio_id, vendedor=request.user)
+    anuncio.vendido = False
+    anuncio.save()
+    return redirect('perfil')
+
+def descargar_backup(request):
+    from django.core.management import call_command
+    from django.http import HttpResponse
+    output = StringIO()
+    call_command('dumpdata', 'marketapp', indent=2, stdout=output)
+    response = HttpResponse(output.getvalue(), content_type="application/json")
+    response['Content-Disposition'] = 'attachment; filename="backup_otto.json"'
+    return response
+
