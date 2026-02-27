@@ -28,7 +28,7 @@
             border: 1px solid var(--neon); border-radius: 4px;
             cursor: pointer; overflow: hidden;
             display: flex; align-items: center; justify-content: center;
-            z-index: 999; /* Elevado para evitar bloqueos */
+            z-index: 999;
             box-shadow: 0 0 10px rgba(0, 243, 255, 0.3);
             transition: 0.3s;
         }
@@ -72,15 +72,25 @@
             border: 1px solid rgba(0, 243, 255, 0.2);
         }
 
-        /* MENÚ TÁCTICO */
-        .menu-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 12px; }
+        /* MENÚ TÁCTICO CORREGIDO */
+        .menu-grid { 
+            display: grid; 
+            grid-template-columns: 1fr 1fr; 
+            gap: 10px; 
+            margin-top: 15px; 
+            width: 100%;
+        }
         .btn-core {
-            background: #000; color: #fff; border: 1px solid #333; padding: 12px 5px;
-            border-radius: 10px; cursor: pointer; font-size: 10px; font-weight: bold;
+            background: #000; color: #fff; border: 1px solid #333; padding: 14px 5px;
+            border-radius: 10px; cursor: pointer; font-size: 11px; font-weight: bold;
             transition: 0.2s;
+            text-transform: uppercase;
         }
         .btn-core:hover { border-color: var(--neon); color: var(--neon); background: #080808; }
-        .btn-wa { grid-column: span 2; border-color: #25d366; color: #25d366; }
+        
+        /* Botones especiales */
+        .btn-wa { grid-column: span 2; border-color: #25d366; color: #25d366; margin-top: 5px; }
+        .btn-otros { border-color: #ff00ff; color: #ff00ff; }
 
         /* INPUT AREA */
         .input-area {
@@ -153,11 +163,12 @@
     function renderMenu() {
         const menu = `<b>SISTEMA OTTO-BOT</b><br>ESTADO: <span class="status-blink">CONECTADO</span><br><br>Selecciona un sector o hazme cualquier pregunta:
             <div class="menu-grid">
-                <button class="btn-core" onclick="exe('Vehiculos')">🚗 Vehiculos</button>
-                <button class="btn-core" onclick="exe('Tecnologia')">💻 Tecnologia</button>
+                <button class="btn-core" onclick="exe('Vehiculos')">🚗 Vehículos</button>
+                <button class="btn-core" onclick="exe('Tecnologia')">💻 Tecnología</button>
                 <button class="btn-core" onclick="exe('Hogar')">🏠 Hogar</button>
                 <button class="btn-core" onclick="exe('Servicios')">🛠️ Servicios</button>
-                <button class="btn-core btn-wa" onclick="window.open('https://wa.me/50376511585')">💬 WHATSAPP</button>
+                <button class="btn-core btn-otros" onclick="exe('Otros')">📦 Otros</button>
+                <button class="btn-core btn-wa" onclick="window.open('https://wa.me/50376511585')">💬 WHATSAPP ELITE</button>
             </div>`;
         renderMsg(menu, 'bot');
     }
@@ -177,7 +188,6 @@
         .then(data => { 
             const loadElem = document.getElementById(loadId);
             if(loadElem) {
-                // Se reemplaza el cargando por la respuesta real de la IA
                 loadElem.parentElement.innerHTML = data.respuesta;
             }
             scroll();
