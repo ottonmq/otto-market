@@ -177,33 +177,30 @@ def restaurar_backup(request):
 # --- 4. PROTOCOLO SHADOW (AI) ---
 
 
+# --- PROTOCOLO SHADOW (CONEXIÓN PURA 3.0) ---
 @csrf_exempt
 def bot_consulta(request):
     if request.method == 'POST':
         try:
+            # 1. Recibimos lo que escribiste
             data = json.loads(request.body)
             texto = data.get('texto', '').strip()
 
-            # ESCÁNER DINÁMICO: Filtra por el texto exacto del botón o búsqueda
-            # Ahora busca específicamente en el nombre de la categoría
-            productos = Publicacion.objects.filter(
-                Q(categoria__nombre__icontains=texto) | Q(titulo__icontains=texto),
-                vendido=False
-            )[:5]
-
-            if productos:
-                res = f"⚡ **OTTO-MARKET // {texto.upper()}** ⚡<br>"
-                for p in productos:
-                    res += f"📦 **{p.titulo.upper()}** - ${p.precio}<br>"
-                return JsonResponse({'respuesta': res})
+            # 2. Llamada directa al Agente (Sin filtros raros)
+            model = genai.GenerativeModel('gemini-1.5-flash')
             
-            # Si no hay productos, intentamos con el Agente (Gumloop)
-            # URL_GUMLOOP = "AQUÍ_VA_TU_NUEVO_WEBHOOK" 
-            return JsonResponse({'respuesta': f"🔍 No hay suministros en **{texto}** por ahora."})
+            # 3. El Agente genera su respuesta
+            chat_response = model.generate_content(f"Eres Shadow, el agente de Otto-task para Dmfhdilyd. Responde a: {texto}")
+            
+            # 4. Enviamos al chat
+            return JsonResponse({'respuesta': chat_response.text})
 
         except Exception as e:
-            return JsonResponse({'respuesta': f"💀 [FALLO_NEURAL]: {str(e)}"})
-    return JsonResponse({'error': 'Método no permitido'}, status=405
+            # Si algo falla, el chat te dirá qué es en lugar de colgarse
+            return JsonResponse({'respuesta': f"⚠️ [SISTEMA_REINICIANDO]: {str(e)}"})
+
+    return JsonResponse({'error': 'Acceso denegado'}, status=405)
+
 
 
 
