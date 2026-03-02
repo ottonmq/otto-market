@@ -177,8 +177,7 @@ def restaurar_backup(request):
 # --- 4. PROTOCOLO SHADOW (AI) ---
 
 
-# --- PROTOCOLO SHADOW (CONEXIÓN PURA 3.0) ---
-import google.generativeai as genai
+# --- PROTOCOLO SHADOW (CONEXIÓN PURA 3.0) -
 @csrf_exempt
 def bot_consulta(request):
     if request.method == 'POST':
