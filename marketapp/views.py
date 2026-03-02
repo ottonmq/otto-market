@@ -175,6 +175,8 @@ def restaurar_backup(request):
     return redirect('dashboard')
 
 # --- 4. PROTOCOLO SHADOW (AI) ---
+
+
 @csrf_exempt
 def bot_consulta(request):
     if request.method == 'POST':
@@ -201,8 +203,7 @@ def bot_consulta(request):
 
         except Exception as e:
             return JsonResponse({'respuesta': f"💀 [FALLO_NEURAL]: {str(e)}"})
-    return JsonResponse({'error': 'Método no permitido'}, status=405)
-
+    return JsonResponse({'error': 'Método no permitido'}, status=405
 
 
 
