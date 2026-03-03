@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Shadow Agent // Database Link</title>
+    <title>Shadow Agent // Otto-task Database</title>
     <style>
         :root { --neon: #00f3ff; --bg: #050505; --card: #0d0d0f; --border: #1a1a1c; }
 
@@ -12,116 +12,15 @@
 
         .otto-frame { width: 100vw; height: 100vh; display: flex; flex-direction: column; position: relative; }
 
-        /* ESCÁNER CYBERPUNK */
+        /* ESCÁNER CYBERPUNK OTTO-TASK */
         .scan-line { position: absolute; top: 0; left: 0; width: 100%; height: 2px; background: var(--neon); box-shadow: 0 0 15px var(--neon); opacity: 0.1; animation: scan 4s infinite linear; z-index: 10; pointer-events: none; }
         @keyframes scan { 0% { top: 0; } 100% { top: 100%; } }
 
         #log { flex: 1; overflow-y: auto; padding: 20px 20px 100px 20px; display: flex; flex-direction: column; gap: 15px; scroll-behavior: smooth; }
 
-        /* MENSAJES DEL AGENTE */
+        /* MENSAJES DEL AGENTE SHADOW */
         .bot-msg { 
             background: #111; border: 1px solid #222; border-left: 3px solid var(--neon);
             padding: 15px; align-self: flex-start; max-width: 90%; 
-            box-shadow: 0 0 20px rgba(0, 243, 255, 0.05);
-        }
-        
-        .user-msg { background: #222; color: var(--neon); align-self: flex-end; padding: 12px; border-radius: 10px; border-bottom-right-radius: 2px; }
+            box-shadow: 0 0 2
 
-        /* PRODUCT CARD RENDER */
-        .shadow-card { margin-top: 10px; border: 1px solid var(--border); background: #000; border-radius: 5px; overflow: hidden; }
-        .shadow-img { width: 100%; height: auto; border-bottom: 1px solid var(--border); display: block; }
-        .shadow-info { padding: 10px; }
-        .shadow-price { color: var(--neon); font-size: 20px; font-weight: bold; display: block; }
-
-        /* INPUT AREA */
-        .input-area { position: fixed; bottom: 0; width: 100%; background: #0d0d0f; padding: 15px; border-top: 1px solid #1a1a1c; }
-        input { width: 100%; background: #111; border: 1px solid #333; padding: 15px; border-radius: 5px; color: var(--neon); outline: none; box-sizing: border-box; }
-        
-        .status-blink { color: var(--neon); animation: blink 1.5s infinite; font-size: 10px; text-transform: uppercase; letter-spacing: 2px; }
-        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
-    </style>
-</head>
-<body>
-
-<div class="otto-frame">
-    <div class="scan-line"></div>
-    <div id="log"></div>
-
-    <div class="input-area">
-        <div class="status-blink" style="margin-bottom: 5px;">Agent_Shadow: Online</div>
-        <input type="text" id="in" placeholder="ESCRIBE TU CONSULTA A LA BASE DE DATOS..." autofocus>
-    </div>
-</div>
-
-<script>
-    const input = document.getElementById('in');
-    const log = document.getElementById('log');
-
-    function scroll() { log.scrollTop = log.scrollHeight; }
-
-    input.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter' && input.value.trim() !== "") {
-            const val = input.value.trim();
-            renderMsg(val, 'user');
-            consultarAgente(val);
-            input.value = '';
-        }
-    });
-
-    function renderMsg(t, type) {
-        const div = document.createElement('div');
-        div.className = type === 'user' ? 'user-msg' : 'bot-msg';
-        div.innerHTML = t;
-        log.appendChild(div);
-        scroll();
-    }
-
-    function consultarAgente(t) {
-        const loadId = "load-" + Date.now();
-        renderMsg("<span id='"+loadId+"' style='color:var(--neon)'>🛰️ ACCEDIENDO A RECURSOS...</span>", 'bot');
-
-        fetch('/bot/consultar/', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token }}'},
-            body: JSON.stringify({ texto: t })
-        })
-        .then(r => r.json())
-        .then(data => { 
-            const loadElem = document.getElementById(loadId);
-            if(data.nombre) {
-                // EL AGENTE MUESTRA LA FOTO Y DETALLES DE LA BASE
-                loadElem.parentElement.innerHTML = `
-                    <div class="shadow-card">
-                        <img src="${data.imagen}" class="shadow-img">
-                        <div class="shadow-info">
-                            <b style="color:var(--neon)">${data.nombre}</b><br>
-                            <span class="shadow-price">$${data.precio}</span>
-                            <p style="font-size:12px; color:#aaa;">${data.detalles}</p>
-                        </div>
-                    </div>
-                `;
-            } else {
-                loadElem.parentElement.innerHTML = data.respuesta;
-            }
-            scroll();
-        });
-    }
-
-    window.onload = () => {
-        setTimeout(() => {
-            renderMsg("Terminal de Agente lista. <b>Dmfhdilyd</b>, solicita el escaneo de cualquier producto.", 'bot');
-        }, 500);
-    };
-</script>
-
-<div style="margin-bottom: 150px; display: block; width: 100%; height: 1px;"></div>
-
-<style>
-    /* Forzamos a que el último elemento tenga aire abajo */
-    main, section, .container {
-        padding-bottom: 100px !important;
-    }
-</style>
-
-</body>
-</html>
