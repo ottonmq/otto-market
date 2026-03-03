@@ -181,17 +181,33 @@ def restaurar_backup(request):
 
 
 
-from django.shortcuts import render
+import os
+import google.generativeai as genai
 from django.http import JsonResponse
+from django.shortcuts import render
+from dotenv import load_dotenv
+
+# Carga las 2 líneas que vi en tu captura de Nano
+load_dotenv()
 
 def bot_consulta(request):
-    # Si entras normal, carga la página
-    if request.method == "GET":
-        return render(request, 'bot_consulta.html')
-    
-    # Si el botón envía algo, responde esto
+    # Extrae la llave del .env
+    api_key = os.getenv("GOOGLE_API_KEY")
+    genai.configure(api_key=api_key)
+
     if request.method == "POST":
-        return JsonResponse({'reply': 'CONEXIÓN EXITOSA: El Agente Shadow te escucha.'})
+        user_msg = request.POST.get('msg', '')
+        try:
+            # Motor Gemini 1.5 Flash activado
+            model = genai.GenerativeModel('gemini-1.5-flash')
+            contexto = "Eres el Shadow Agent de JM Market (Otto-task). Responde con estilo Cyberpunk Premium."
+            response = model.generate_content(f"{contexto} {user_msg}")
+            
+            return JsonResponse({'reply': response.text})
+        except Exception as e:
+            return JsonResponse({'reply': f'[ERROR DE ENLACE]: {str(e)}'})
+
+    return render(request, 'bot_consulta.html')
 
 
 
