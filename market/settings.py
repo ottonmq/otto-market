@@ -144,6 +144,15 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 SOCIALACCOUNT_LOGIN_ON_GET = True
 
 
-# En tu archivo de configuración (settings.py o similar)
-AIRIA_API_KEY = "Ak-MjEONTQ3NDMzNnwxNzcxNzc0NzcxNjcxfHRpLURtZmhkaWx5ZHx8MXw0ZTAwYjNjYTM1OTkyNjBlMjIzZWY0YTQwZWMwYjNjYTM1OTkyNjBlMjIzZWY0YTQwZWMwYjNjYTM1OTkyNjBlMjIzZWY0YTQw"
-SHADOW_AGENT_ID = "7e1e796f-5786-4ff9-9c90-81b8d6fdbde3"
+# ==========================================================
+# 🤖 NÚCLEO SHADOW (GEMINI AI CONFIG) - PROTEGIDO
+# ==========================================================
+# GitHub NO detectará la clave porque se lee del entorno de Render
+GOOGLE_API_KEY = os.environ.get('GOOGLE_API_KEY') 
+
+SHADOW_AGENT_CONFIG = {
+    'NAME': 'Shadow',
+    'MODEL': 'gemini-2.0-flash',
+    'CONTEXT': 'Eres Shadow, el agente táctico de Otto-task. Responde con estilo neon tech.'
+}
+
