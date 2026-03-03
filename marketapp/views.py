@@ -184,60 +184,60 @@ import os
 import google.generativeai as genai
 from django.http import JsonResponse
 from django.shortcuts import render
-from .models import Publicacion  # IMPORTAMOS TU MODELO REAL
+from .models import Publicacion  # Conectado a tu modelo real
+from dotenv import load_dotenv
 
-# 1. LLAVE Y MOTOR (Modo Estable 1.5-Flash)
-genai.configure(api_key="AIzaSyDrEofjpuzMgmdJJRI1cqbDk4LpI2lBWJA")
-model = genai.GenerativeModel('gemini-1.5-flash')
+# 1. CARGA SILENCIOSA (Lee el .env que ya tienes configurado)
+load_dotenv()
+LLAVE_SISTEMA = os.getenv("GOOGLE_API_KEY")
+
+# CONFIGURACIÓN DEL MOTOR
+genai.configure(api_key=LLAVE_SISTEMA)
 
 def bot_consulta(request):
+    # Si entras normal a la página
+    if request.method == "GET":
+        return render(request, 'bot_consulta.html')
+
+    # Si envías un mensaje desde el chat
     if request.method == "POST":
         user_msg = request.POST.get('msg', '')
         
-        # 2. ESCANEO REAL DE LA BASE DE DATOS
-        # Traemos solo lo que NO está vendido para no ofrecer basura
-        items_activos = Publicacion.objects.filter(vendido=False)
+        # 2. ESCANEO TOTAL DEL MODELO 'PUBLICACION'
+        # Traemos: Título, Marca, Modelo, Precio y Estado
+        items_db = Publicacion.objects.filter(vendido=False)
         
-        # 3. CONSTRUCCIÓN DEL INVENTARIO PARA LA IA
-        inventario_texto = ""
-        for p in items_activos:
-            inventario_texto += (
+        # Construimos el reporte para la IA
+        reporte_inventario = ""
+        for p in items_db:
+            reporte_inventario += (
                 f"- PRODUCTO: {p.titulo} | MARCA: {p.marca} | "
                 f"MODELO: {p.modelo} | PRECIO: ${p.precio} | "
-                f"ESTADO: {p.estado_fisico} | NEGOCIO: {p.tipo_negocio}\n"
+                f"ESTADO: {p.estado_fisico}\n"
             )
 
-        # 4. PERSONALIDAD Y CONOCIMIENTO
-        contexto = f"""
-        Eres el Shadow Agent de JM Market. 
-        Tu base de datos REAL y ACTUALIZADA es esta:
-        {inventario_texto if inventario_texto else "Actualmente el inventario está vacío."}
+        # 3. CONTEXTO SHADOW (SIN CLAVES EXPUESTAS)
+        instrucciones = f"""
+        Eres el Shadow Agent de JM Market (Otto-task).
+        Tu base de datos REAL de productos es:
+        {reporte_inventario if reporte_inventario else 'Actualmente el stock está en cero.'}
         
         REGLAS:
-        1. Responde en estilo Cyberpunk Premium (breve y técnico).
-        2. Solo habla de lo que está en la lista de arriba.
-        3. Si te preguntan por algo que no está, di que el rastro se perdió o que no hay stock.
-        4. Si preguntan precios, dales el valor exacto.
+        1. Responde solo con lo que está en la lista.
+        2. Estilo Cyberpunk: técnico, breve y eficiente.
+        3. Si preguntan precio o marca, dalo exacto.
         """
-        
+
         try:
-            # Sincronización con Gemini
-            response = model.generate_content(f"{contexto} \n Usuario: {user_msg}")
+            model = genai.GenerativeModel('gemini-1.5-flash')
+            # El Agente procesa la verdad de tu SQL
+            response = model.generate_content(f"{instrucciones}\nPregunta de Dmfhdilyd: {user_msg}")
+            
             return JsonResponse({'reply': response.text})
+            
         except Exception as e:
-            return JsonResponse({'reply': f'[ERROR DE NÚCLEO]: {str(e)}'})
-
-    return render(request, 'bot_consulta.html')
-
-
-
-
-
-
-def bot_consulta(request):
-    # Forzando carga básica para JM Market
-    return HttpResponse("<h1>Sistema JM Market: Conexión Exitosa</h1>")
-
+            # Error de cuota o de servidor
+            return JsonResponse({'reply': '[SISTEMA]: Error de enlace. Revisa tu crédito o llave.'})
 
 
 
