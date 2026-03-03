@@ -180,34 +180,56 @@ def restaurar_backup(request):
 # --- PROTOCOLO SHADOW (CONEXIÓN PURA 3.0) -
 
 
-
 import os
 import google.generativeai as genai
 from django.http import JsonResponse
 from django.shortcuts import render
-from dotenv import load_dotenv
+from .models import Publicacion  # IMPORTAMOS TU MODELO REAL
 
-# Carga las 2 líneas que vi en tu captura de Nano
-load_dotenv()
+# 1. LLAVE Y MOTOR (Modo Estable 1.5-Flash)
+genai.configure(api_key="AIzaSyDrEofjpuzMgmdJJRI1cqbDk4LpI2lBWJA")
+model = genai.GenerativeModel('gemini-1.5-flash')
 
 def bot_consulta(request):
-    # Extrae la llave del .env
-    api_key = os.getenv("GOOGLE_API_KEY")
-    genai.configure(api_key=api_key)
-
     if request.method == "POST":
         user_msg = request.POST.get('msg', '')
+        
+        # 2. ESCANEO REAL DE LA BASE DE DATOS
+        # Traemos solo lo que NO está vendido para no ofrecer basura
+        items_activos = Publicacion.objects.filter(vendido=False)
+        
+        # 3. CONSTRUCCIÓN DEL INVENTARIO PARA LA IA
+        inventario_texto = ""
+        for p in items_activos:
+            inventario_texto += (
+                f"- PRODUCTO: {p.titulo} | MARCA: {p.marca} | "
+                f"MODELO: {p.modelo} | PRECIO: ${p.precio} | "
+                f"ESTADO: {p.estado_fisico} | NEGOCIO: {p.tipo_negocio}\n"
+            )
+
+        # 4. PERSONALIDAD Y CONOCIMIENTO
+        contexto = f"""
+        Eres el Shadow Agent de JM Market. 
+        Tu base de datos REAL y ACTUALIZADA es esta:
+        {inventario_texto if inventario_texto else "Actualmente el inventario está vacío."}
+        
+        REGLAS:
+        1. Responde en estilo Cyberpunk Premium (breve y técnico).
+        2. Solo habla de lo que está en la lista de arriba.
+        3. Si te preguntan por algo que no está, di que el rastro se perdió o que no hay stock.
+        4. Si preguntan precios, dales el valor exacto.
+        """
+        
         try:
-            # Motor Gemini 1.5 Flash activado
-            model = genai.GenerativeModel('gemini-1.5-flash')
-            contexto = "Eres el Shadow Agent de JM Market (Otto-task). Responde con estilo Cyberpunk Premium."
-            response = model.generate_content(f"{contexto} {user_msg}")
-            
+            # Sincronización con Gemini
+            response = model.generate_content(f"{contexto} \n Usuario: {user_msg}")
             return JsonResponse({'reply': response.text})
         except Exception as e:
-            return JsonResponse({'reply': f'[ERROR DE ENLACE]: {str(e)}'})
+            return JsonResponse({'reply': f'[ERROR DE NÚCLEO]: {str(e)}'})
 
     return render(request, 'bot_consulta.html')
+
+
 
 
 
