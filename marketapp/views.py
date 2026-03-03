@@ -185,41 +185,26 @@ import google.generativeai as genai
 from django.http import JsonResponse
 from django.shortcuts import render
 from .models import Publicacion
-from dotenv import load_dotenv
-
-load_dotenv()
-genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
 
 def bot_consulta(request):
-    if request.method == "GET":
-        return render(request, 'bot_consulta.html')
-
     if request.method == "POST":
         user_msg = request.POST.get('msg', '')
-        
-        # ESCANEO DE PRODUCTOS REALES EN RENDER
-        items_db = Publicacion.objects.filter(vendido=False)
-        reporte = "\n".join([
-            f"- {p.titulo} | Marca: {p.marca} | Precio: ${p.precio} | Estado: {p.estado_fisico}"
-            for p in items_db
-        ])
+        # Escaneo directo de la base de Render
+        items = Publicacion.objects.filter(vendido=False)
+        reporte = "\n".join([f"- {p.titulo} (${p.precio})" for p in items])
 
-        instrucciones = f"""
-        Eres Shadow, el agente táctico de JM Market. 
-        STOCK REAL DE LA BASE DE DATOS:
-        {reporte if reporte else 'Stock vacío actualmente.'}
+        instrucciones = f"Eres Shadow, agente de Otto-task. Stock: {reporte}. Responde corto y neón."
         
-        REGLAS:
-        - Responde corto, estilo neon tech/cyberpunk.
-        - Usa solo la información del stock real arriba mencionado.
-        """
-
         try:
+            genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
             model = genai.GenerativeModel('gemini-1.5-flash')
-            response = model.generate_content(f"{instrucciones}\nOperador pregunta: {user_msg}")
+            response = model.generate_content(f"{instrucciones}\nPregunta: {user_msg}")
             return JsonResponse({'reply': response.text})
         except Exception as e:
-            return JsonResponse({'reply': f'[ERROR_NÚCLEO]: {str(e)}'})
+            return JsonResponse({'reply': f'[ERROR]: {str(e)}'})
+            
+    return render(request, 'bot_consulta.html')
+
 
 
 
