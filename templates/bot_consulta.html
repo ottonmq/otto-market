@@ -2,78 +2,54 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Shadow Agent // JM Market Premium</title>
+    <title>JM Market // Shadow Agent</title>
     <style>
-        :root { --neon: #00f3ff; --bg: #050505; --tech-red: #ff0055; }
-        body { background: var(--bg); color: #fff; font-family: 'Courier New', monospace; margin: 0; overflow: hidden; }
+        :root { --neon: #00f3ff; --bg: #050505; --red: #ff0055; }
+        body { background: var(--bg); color: #fff; font-family: monospace; margin: 0; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+        
+        /* Escáner Cyberpunk */
+        .scanner { position: absolute; top:0; width: 100%; height: 2px; background: var(--neon); box-shadow: 0 0 15px var(--neon); animation: s 4s infinite linear; z-index: 10; }
+        @keyframes s { 0% {top:0} 100% {top:100%} }
 
-        /* ESCÁNER CYBERPUNK OTTO-TASK */
-        .scan-line { position: absolute; top: 0; left: 0; width: 100%; height: 2px; background: var(--neon); box-shadow: 0 0 15px var(--neon); opacity: 0.3; animation: scan 4s infinite linear; z-index: 100; pointer-events: none; }
-        @keyframes scan { 0% { top: 0; } 100% { top: 100%; } }
+        #log { flex: 1; overflow-y: auto; padding: 20px; border-bottom: 1px solid #1a1a1c; z-index: 5; }
+        .msg { margin-bottom: 15px; padding: 10px; border-left: 2px solid var(--neon); background: rgba(0, 243, 255, 0.05); }
 
-        .otto-frame { height: 100vh; display: flex; flex-direction: column; }
-        #log { flex: 1; overflow-y: auto; padding: 40px 20px; display: flex; flex-direction: column; gap: 15px; }
-
-        /* ESTILO NEÓN TECH */
-        .msg { background: rgba(13, 13, 15, 0.9); border-left: 3px solid var(--neon); padding: 15px; box-shadow: 0 0 10px rgba(0, 243, 255, 0.05); }
-        .user { border-left: none; border-right: 3px solid var(--tech-red); align-self: flex-end; }
-
-        /* ÁREA DE INPUT */
-        .input-area { background: #000; border-top: 1px solid #1a1a1c; padding: 20px; display: flex; gap: 10px; }
-        input { flex: 1; background: #080808; border: 1px solid #333; color: var(--neon); padding: 12px; outline: none; }
-
-        /* BOTÓN TECH CON PARTÍCULAS (OPTIMIZADO) */
-        #btn { position: relative; background: var(--neon); color: #000; border: none; padding: 10px 25px; font-weight: bold; cursor: pointer; overflow: hidden; }
-        #particulas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; }
+        /* Barra de Entrada (Garantizado que se vea abajo) */
+        .input-box { background: #000; border-top: 2px solid var(--neon); padding: 20px; display: flex; gap: 10px; z-index: 20; }
+        input { flex: 1; background: #0a0a0a; border: 1px solid #333; color: var(--neon); padding: 15px; outline: none; }
+        button { background: var(--neon); color: #000; border: none; padding: 0 30px; font-weight: bold; cursor: pointer; }
     </style>
 </head>
 <body>
-    <div class="scan-line"></div>
-    <div class="otto-frame">
-        <div id="log">
-            <div class="msg"><strong>[SHADOW_AGENT]:</strong> JM Market cargado. Sistema local activo sin clave externa.</div>
-        </div>
-        <div class="input-area">
-            <input type="text" id="userInput" placeholder="Ingresar comando...">
-            <button id="btn">ENVIAR <canvas id="particulas"></canvas></button>
-        </div>
+    <div class="scanner"></div>
+    <div id="log">
+        <div class="msg"><strong>[SHADOW_AGENT]:</strong> JM Market cargado. Conexión establecida con la llave del .env.</div>
+    </div>
+
+    <div class="input-box">
+        <input type="text" id="userInput" placeholder="ORDEN DE SISTEMA..." autocomplete="off">
+        <button onclick="enviar()">EJECUTAR</button>
     </div>
 
     <script>
-        const canvas = document.getElementById('particulas');
-        const ctx = canvas.getContext('2d');
-        const btn = document.getElementById('btn');
+        async function enviar() {
+            const i = document.getElementById('userInput');
+            const l = document.getElementById('log');
+            if(!i.value) return;
 
-        // EFECTO DE PARTÍCULAS SIN BLOQUEO
-        function emitir() {
-            canvas.width = btn.offsetWidth; canvas.height = btn.offsetHeight;
-            for(let i=0; i<15; i++) {
-                ctx.fillStyle = "#000";
-                ctx.fillRect(Math.random()*canvas.width, Math.random()*canvas.height, 2, 2);
-            }
-        }
+            l.innerHTML += `<div class="msg" style="border-color:var(--red);">[USER]: ${i.value}</div>`;
+            const val = i.value;
+            i.value = '';
 
-        btn.onclick = async () => {
-            const input = document.getElementById('userInput');
-            const log = document.getElementById('log');
-            if(!input.value) return;
-
-            emitir();
-            log.innerHTML += `<div class="msg user"><strong>[USER]:</strong> ${input.value}</div>`;
-            
-            // CONEXIÓN AL VIEW (SIN KEY)
-            const response = await fetch('', {
+            const res = await fetch('', {
                 method: 'POST',
                 headers: {'X-CSRFToken': '{{ csrf_token }}', 'Content-Type': 'application/x-www-form-urlencoded'},
-                body: 'msg=' + input.value
+                body: 'msg=' + encodeURIComponent(val)
             });
-            const data = await response.json();
-            
-            log.innerHTML += `<div class="msg"><strong>[SHADOW_AGENT]:</strong> ${data.reply}</div>`;
-            input.value = '';
-            log.scrollTop = log.scrollHeight;
-        };
+            const data = await res.json();
+            l.innerHTML += `<div class="msg">[SHADOW]: ${data.reply}</div>`;
+            l.scrollTop = l.scrollHeight;
+        }
     </script>
 </body>
 </html>
-
