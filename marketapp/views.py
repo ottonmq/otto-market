@@ -181,10 +181,18 @@ def restaurar_backup(request):
 
 
 
-import json
-import google.generativeai as genai
+from django.shortcuts import render
 from django.http import JsonResponse
-from django.views.decorators.csrf import csrf_exempt
+
+def bot_consulta(request):
+    # Si entras normal, carga la página
+    if request.method == "GET":
+        return render(request, 'bot_consulta.html')
+    
+    # Si el botón envía algo, responde esto
+    if request.method == "POST":
+        return JsonResponse({'reply': 'CONEXIÓN EXITOSA: El Agente Shadow te escucha.'})
+
 
 
 
