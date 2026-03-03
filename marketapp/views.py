@@ -187,41 +187,10 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 
 
-@csrf_exempt
+
 def bot_consulta(request):
-    if request.method == 'POST':
-        try:
-            data = json.loads(request.body)
-            texto = data.get('texto', '').strip().lower()
-
-            # 1. BUSQUEDA EN BASE DE DATOS (Lo que el jurado quiere ver)
-            # Intentamos buscar si el usuario pregunta por un producto que existe
-            producto = Producto.objects.filter(nombre__icontains=texto).first()
-
-            if producto:
-                # Si existe, enviamos los datos para que el HTML renderice la CARD
-                return JsonResponse({
-                    'nombre': producto.nombre,
-                    'precio': str(producto.precio),
-                    'imagen': producto.imagen.url if producto.imagen else '/static/no-img.png',
-                    'detalles': producto.descripcion or "Sin descripción técnica."
-                })
-
-            # 2. SI NO ES UN PRODUCTO, RESPONDE LA IA (Shadow Agent)
-            # Usamos la configuración de Gemini que ya tienes
-            model = genai.GenerativeModel('gemini-1.5-flash')
-            
-            # Le damos personalidad de Otto-task
-            prompt = f"Eres Shadow, el agente táctico de Otto-task para Dmfhdilyd. Responde de forma breve y tech a: {texto}"
-            chat_response = model.generate_content(prompt)
-
-            return JsonResponse({'respuesta': chat_response.text})
-
-        except Exception as e:
-            return JsonResponse({'respuesta': f"⚠️ [SISTEMA_REINICIANDO]: {str(e)}"})
-
-    return JsonResponse({'error': 'Acceso denegado'}, status=405)
-
+    # Forzando carga básica para JM Market
+    return HttpResponse("<h1>Sistema JM Market: Conexión Exitosa</h1>")
 
 
 
