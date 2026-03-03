@@ -184,60 +184,43 @@ import os
 import google.generativeai as genai
 from django.http import JsonResponse
 from django.shortcuts import render
-from .models import Publicacion  # Conectado a tu modelo real
+from .models import Publicacion
 from dotenv import load_dotenv
 
-# 1. CARGA SILENCIOSA (Lee el .env que ya tienes configurado)
 load_dotenv()
-LLAVE_SISTEMA = os.getenv("GOOGLE_API_KEY")
-
-# CONFIGURACIÓN DEL MOTOR
-genai.configure(api_key=LLAVE_SISTEMA)
+genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
 
 def bot_consulta(request):
-    # Si entras normal a la página
     if request.method == "GET":
         return render(request, 'bot_consulta.html')
 
-    # Si envías un mensaje desde el chat
     if request.method == "POST":
         user_msg = request.POST.get('msg', '')
         
-        # 2. ESCANEO TOTAL DEL MODELO 'PUBLICACION'
-        # Traemos: Título, Marca, Modelo, Precio y Estado
+        # ESCANEO DE PRODUCTOS REALES EN RENDER
         items_db = Publicacion.objects.filter(vendido=False)
-        
-        # Construimos el reporte para la IA
-        reporte_inventario = ""
-        for p in items_db:
-            reporte_inventario += (
-                f"- PRODUCTO: {p.titulo} | MARCA: {p.marca} | "
-                f"MODELO: {p.modelo} | PRECIO: ${p.precio} | "
-                f"ESTADO: {p.estado_fisico}\n"
-            )
+        reporte = "\n".join([
+            f"- {p.titulo} | Marca: {p.marca} | Precio: ${p.precio} | Estado: {p.estado_fisico}"
+            for p in items_db
+        ])
 
-        # 3. CONTEXTO SHADOW (SIN CLAVES EXPUESTAS)
         instrucciones = f"""
-        Eres el Shadow Agent de JM Market (Otto-task).
-        Tu base de datos REAL de productos es:
-        {reporte_inventario if reporte_inventario else 'Actualmente el stock está en cero.'}
+        Eres Shadow, el agente táctico de JM Market. 
+        STOCK REAL DE LA BASE DE DATOS:
+        {reporte if reporte else 'Stock vacío actualmente.'}
         
         REGLAS:
-        1. Responde solo con lo que está en la lista.
-        2. Estilo Cyberpunk: técnico, breve y eficiente.
-        3. Si preguntan precio o marca, dalo exacto.
+        - Responde corto, estilo neon tech/cyberpunk.
+        - Usa solo la información del stock real arriba mencionado.
         """
 
         try:
             model = genai.GenerativeModel('gemini-1.5-flash')
-            # El Agente procesa la verdad de tu SQL
-            response = model.generate_content(f"{instrucciones}\nPregunta de Dmfhdilyd: {user_msg}")
-            
+            response = model.generate_content(f"{instrucciones}\nOperador pregunta: {user_msg}")
             return JsonResponse({'reply': response.text})
-            
         except Exception as e:
-            # Error de cuota o de servidor
-            return JsonResponse({'reply': '[SISTEMA]: Error de enlace. Revisa tu crédito o llave.'})
+            return JsonResponse({'reply': f'[ERROR_NÚCLEO]: {str(e)}'})
+
 
 
 
