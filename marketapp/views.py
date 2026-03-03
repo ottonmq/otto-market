@@ -181,7 +181,7 @@ def restaurar_backup(request):
 
 
 import os
-import google.generativeai as genai
+from google import genai
 from django.http import JsonResponse
 from django.shortcuts import render
 from .models import Publicacion
@@ -189,20 +189,30 @@ from .models import Publicacion
 def bot_consulta(request):
     if request.method == "POST":
         user_msg = request.POST.get('msg', '')
-        # Escaneo directo de la base de Render
+        
+        # Escaneo de base de datos Otto-task
         items = Publicacion.objects.filter(vendido=False)
         reporte = "\n".join([f"- {p.titulo} (${p.precio})" for p in items])
 
         instrucciones = f"Eres Shadow, agente de Otto-task. Stock: {reporte}. Responde corto y neón."
-        
+
         try:
-            genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
-            model = genai.GenerativeModel('gemini-1.5-flash')
-            response = model.generate_content(f"{instrucciones}\nPregunta: {user_msg}")
+            # EXTRAEMOS LA VARIABLE DEL .ENV QUE ME MOSTRASTE EN LA FOTO
+            key = os.environ.get("GOOGLE_API_KEY") 
+            
+            # INYECTAMOS AL CLIENTE V3
+            client = genai.Client(api_key=key)
+            
+            # LLAMADA AL NÚCLEO GEMMA 3 (EL QUE SÍ RESPONDE)
+            response = client.models.generate_content(
+                model="models/gemma-3-27b-it",
+                contents=f"{instrucciones}\nComando: {user_msg}"
+            )
+            
             return JsonResponse({'reply': response.text})
         except Exception as e:
-            return JsonResponse({'reply': f'[ERROR]: {str(e)}'})
-            
+            return JsonResponse({'reply': f'[ERROR]: Verifica la llave en el .env. Detalle: {str(e)}'})
+
     return render(request, 'bot_consulta.html')
 
 
