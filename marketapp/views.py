@@ -181,7 +181,7 @@ def restaurar_backup(request):
 
 
 import os
-from google import genai
+from google import genai  # USAMOS EL CLIENTE NUEVO V3
 from django.http import JsonResponse
 from django.shortcuts import render
 from .models import Publicacion
@@ -190,31 +190,29 @@ def bot_consulta(request):
     if request.method == "POST":
         user_msg = request.POST.get('msg', '')
         
-        # Escaneo de base de datos Otto-task
+        # Escaneo de base de datos Otto-task para el Hackathon
         items = Publicacion.objects.filter(vendido=False)
         reporte = "\n".join([f"- {p.titulo} (${p.precio})" for p in items])
 
-        instrucciones = f"Eres Shadow, agente de Otto-task. Stock: {reporte}. Responde corto y neón."
+        instrucciones = f"Eres Shadow, agente elite de Otto-task. Stock: {reporte}. Responde corto, español y estilo neon cyberpunk."
 
         try:
-            # EXTRAEMOS LA VARIABLE DEL .ENV QUE ME MOSTRASTE EN LA FOTO
+            # JALA LA LLAVE DEL .ENV QUE TENÉS EN UBUNTU
             key = os.environ.get("GOOGLE_API_KEY") 
-            
-            # INYECTAMOS AL CLIENTE V3
             client = genai.Client(api_key=key)
             
-            # LLAMADA AL NÚCLEO GEMMA 3 (EL QUE SÍ RESPONDE)
+            # DISPARO DIRECTO AL NÚCLEO QUE SÍ FUNCIONA
             response = client.models.generate_content(
-                model="models/gemma-3-27b-it",
+                model="models/gemma-3-27b-it", # EL MODELO QUE PROBAMOS RECIÉN
                 contents=f"{instrucciones}\nComando: {user_msg}"
             )
             
             return JsonResponse({'reply': response.text})
         except Exception as e:
-            return JsonResponse({'reply': f'[ERROR]: Verifica la llave en el .env. Detalle: {str(e)}'})
+            # Si algo falla, Shadow te avisa en la terminal
+            return JsonResponse({'reply': f'[ERROR_SISTEMA]: {str(e)}'})
 
     return render(request, 'bot_consulta.html')
-
 
 
 
