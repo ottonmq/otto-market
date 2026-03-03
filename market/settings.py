@@ -6,6 +6,13 @@ import cloudinary.uploader
 import cloudinary.api
 from pathlib import Path
 
+
+from dotenv import load_dotenv
+load_dotenv()
+
+
+
+
 # ==========================================================
 # 🛰️ ESCÁNER DE ENTORNO Y PARCHE TERMUX (ERROR 38)
 # ==========================================================
