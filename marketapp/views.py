@@ -181,36 +181,49 @@ def restaurar_backup(request):
 
 
 import os
-from google import genai  # USAMOS EL CLIENTE NUEVO V3
+from google import genai
+from django.db.models import Sum
 from django.http import JsonResponse
 from django.shortcuts import render
 from .models import Publicacion
 
 def bot_consulta(request):
     if request.method == "POST":
-        user_msg = request.POST.get('msg', '')
-        
-        # Escaneo de base de datos Otto-task para el Hackathon
-        items = Publicacion.objects.filter(vendido=False)
-        reporte = "\n".join([f"- {p.titulo} (${p.precio})" for p in items])
+        user_msg = request.POST.get('msg', '').lower() # Normalizamos a minúsculas
 
-        instrucciones = f"Eres Shadow, agente elite de Otto-task. Stock: {reporte}. Responde corto, español y estilo neon cyberpunk."
+        # 1. ESCANEO REAL DE ACTIVOS
+        items = Publicacion.objects.filter(vendido=False)
+        total_valor = items.aggregate(total=Sum('precio'))['total'] or 0
+        
+        # 2. CONSTRUCCIÓN DE DATA-CORE (Para que no invente precios)
+        reporte = "\n".join([f"- {p.titulo}: ${p.precio}" for p in items])
+        
+        # 3. INSTRUCCIONES DE COMPORTAMIENTO (System Prompt)
+        # Forzamos a Shadow a ser preciso y no inventar misiones si no se le piden.
+        instrucciones = (
+            f"IDENTIDAD: Shadow, agente de Otto-task. "
+            f"ESTADO_SISTEMA: Premium Pure Neon. "
+            f"STOCK_REAL: {reporte}. "
+            f"VALOR_TOTAL_ACTIVOS: ${total_valor}. "
+            f"REGLAS: 1. Responde solo basándote en el STOCK_REAL. "
+            f"2. Si el producto no está, di 'Activo no detectado'. "
+            f"3. Si hay errores de dedo (ej. 'celulates'), busca en el STOCK_REAL el más parecido. "
+            f"4. Estilo: Cyberpunk, español, ultra-corto."
+        )
 
         try:
-            # JALA LA LLAVE DEL .ENV QUE TENÉS EN UBUNTU
             key = os.environ.get("GOOGLE_API_KEY") 
             client = genai.Client(api_key=key)
-            
-            # DISPARO DIRECTO AL NÚCLEO QUE SÍ FUNCIONA
+
+            # DISPARO CON CONTEXTO DE INVENTARIO
             response = client.models.generate_content(
-                model="models/gemma-3-27b-it", # EL MODELO QUE PROBAMOS RECIÉN
-                contents=f"{instrucciones}\nComando: {user_msg}"
+                model="models/gemma-3-27b-it",
+                contents=f"CONTEXTO_SISTEMA: {instrucciones}\nCOMANDO_USUARIO: {user_msg}"
             )
-            
+
             return JsonResponse({'reply': response.text})
         except Exception as e:
-            # Si algo falla, Shadow te avisa en la terminal
-            return JsonResponse({'reply': f'[ERROR_SISTEMA]: {str(e)}'})
+            return JsonResponse({'reply': f'[ERROR_SISTEMA]: Enlace roto con el núcleo.'})
 
     return render(request, 'bot_consulta.html')
 
