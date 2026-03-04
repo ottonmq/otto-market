@@ -181,7 +181,9 @@ def restaurar_backup(request):
 
 
 import os
+import base64
 from google import genai
+from google.genai import types # Para soporte multimodal
 from django.db.models import Sum
 from django.http import JsonResponse
 from django.shortcuts import render
@@ -189,43 +191,56 @@ from .models import Publicacion
 
 def bot_consulta(request):
     if request.method == "POST":
-        user_msg = request.POST.get('msg', '').lower() # Normalizamos a minúsculas
+        user_msg = request.POST.get('msg', '').lower()
+        image_data = request.POST.get('image') # Si envías una captura desde el front
 
-        # 1. ESCANEO REAL DE ACTIVOS
+        # 1. ESCANEO REAL DE ACTIVOS EN OTTO-MARKET-DB
         items = Publicacion.objects.filter(vendido=False)
         total_valor = items.aggregate(total=Sum('precio'))['total'] or 0
         
-        # 2. CONSTRUCCIÓN DE DATA-CORE (Para que no invente precios)
-        reporte = "\n".join([f"- {p.titulo}: ${p.precio}" for p in items])
-        
-        # 3. INSTRUCCIONES DE COMPORTAMIENTO (System Prompt)
-        # Forzamos a Shadow a ser preciso y no inventar misiones si no se le piden.
+        # Reporte detallado para evitar el error de "Solo celular"
+        reporte = "\n".join([f"- PRODUCTO: {p.titulo} | PRECIO: ${p.precio} | ESTADO: Nuevo" for p in items])
+
         instrucciones = (
-            f"IDENTIDAD: Shadow, agente de Otto-task. "
-            f"ESTADO_SISTEMA: Premium Pure Neon. "
-            f"STOCK_REAL: {reporte}. "
-            f"VALOR_TOTAL_ACTIVOS: ${total_valor}. "
-            f"REGLAS: 1. Responde solo basándote en el STOCK_REAL. "
-            f"2. Si el producto no está, di 'Activo no detectado'. "
-            f"3. Si hay errores de dedo (ej. 'celulates'), busca en el STOCK_REAL el más parecido. "
-            f"4. Estilo: Cyberpunk, español, ultra-corto."
+            f"IDENTIDAD: Shadow, agente élite de Otto-task. "
+            f"CONTEXTO: Operando en Google Cloud Vertex AI. "
+            f"INVENTARIO_REAL: {reporte}. "
+            f"VALOR_TOTAL: ${total_valor}. "
+            f"MODO: Multimodal UI Navigator. "
+            f"REGLAS: 1. Si ves una imagen, analízala y relaciónala con el stock. "
+            f"2. Usa nombres completos (ej. Xiaomi Redmi 15C). "
+            f"3. Responde en español, estilo Cyberpunk Neon, ultra-corto."
         )
 
         try:
             key = os.environ.get("GOOGLE_API_KEY") 
             client = genai.Client(api_key=key)
+            
+            # 2. PREPARACIÓN DE CONTENIDO MULTIMODAL
+            content_list = [f"CONTEXTO_SISTEMA: {instrucciones}\nUSUARIO: {user_msg}"]
+            
+            # Si el usuario sube una imagen (captura de pantalla de la UI)
+            if image_data:
+                # Quitamos el prefijo 'data:image/png;base64,' si existe
+                header, encoded = image_data.split(",", 1) if "," in image_data else (None, image_data)
+                content_list.append(types.Part.from_bytes(
+                    data=base64.b64decode(encoded),
+                    mime_type="image/png"
+                ))
 
-            # DISPARO CON CONTEXTO DE INVENTARIO
+            # 3. DISPARO AL NÚCLEO GEMMA 3 (Hosteado en Google Cloud)
             response = client.models.generate_content(
                 model="models/gemma-3-27b-it",
-                contents=f"CONTEXTO_SISTEMA: {instrucciones}\nCOMANDO_USUARIO: {user_msg}"
+                contents=content_list
             )
 
             return JsonResponse({'reply': response.text})
+            
         except Exception as e:
-            return JsonResponse({'reply': f'[ERROR_SISTEMA]: Enlace roto con el núcleo.'})
+            return JsonResponse({'reply': f'[ERROR_SISTEMA]: Enlace roto. Detalle: {str(e)}'})
 
     return render(request, 'bot_consulta.html')
+
 
 
 
