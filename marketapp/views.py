@@ -183,61 +183,54 @@ def restaurar_backup(request):
 import os
 import base64
 from google import genai
-from google.genai import types # Para soporte multimodal
+from google.genai import types
 from django.db.models import Sum
 from django.http import JsonResponse
-from django.shortcuts import render
 from .models import Publicacion
 
 def bot_consulta(request):
     if request.method == "POST":
         user_msg = request.POST.get('msg', '').lower()
-        image_data = request.POST.get('image') # Si envías una captura desde el front
+        image_b64 = request.POST.get('image') # Captura de pantalla enviada desde el celular
 
-        # 1. ESCANEO REAL DE ACTIVOS EN OTTO-MARKET-DB
+        # 1. SINCRONIZACIÓN DE ACTIVOS REALES
         items = Publicacion.objects.filter(vendido=False)
-        total_valor = items.aggregate(total=Sum('precio'))['total'] or 0
-        
-        # Reporte detallado para evitar el error de "Solo celular"
-        reporte = "\n".join([f"- PRODUCTO: {p.titulo} | PRECIO: ${p.precio} | ESTADO: Nuevo" for p in items])
+        reporte_stock = "\n".join([f"- {p.titulo} (${p.precio})" for p in items])
+        total_cash = items.aggregate(total=Sum('precio'))['total'] or 0
 
+        # 2. PERSONALIDAD Y REGLAS (GCP GROUNDING)
         instrucciones = (
-            f"IDENTIDAD: Shadow, agente élite de Otto-task. "
-            f"CONTEXTO: Operando en Google Cloud Vertex AI. "
-            f"INVENTARIO_REAL: {reporte}. "
-            f"VALOR_TOTAL: ${total_valor}. "
-            f"MODO: Multimodal UI Navigator. "
-            f"REGLAS: 1. Si ves una imagen, analízala y relaciónala con el stock. "
-            f"2. Usa nombres completos (ej. Xiaomi Redmi 15C). "
-            f"3. Responde en español, estilo Cyberpunk Neon, ultra-corto."
+            f"Eres Shadow, agente multimodal de Otto-task en Google Cloud. "
+            f"STOCK_REAL: {reporte_stock}. VALOR_TOTAL: ${total_cash}. "
+            f"TAREA: Eres un UI Navigator. Si recibes una imagen, búscala en el STOCK_REAL. "
+            f"Si el usuario pide un producto, da el nombre exacto (ej. Redmi 15C). "
+            f"Estilo: Cyberpunk, español, ultra-eficiente."
         )
 
         try:
-            key = os.environ.get("GOOGLE_API_KEY") 
-            client = genai.Client(api_key=key)
+            client = genai.Client(api_key=os.environ.get("GOOGLE_API_KEY"))
             
-            # 2. PREPARACIÓN DE CONTENIDO MULTIMODAL
-            content_list = [f"CONTEXTO_SISTEMA: {instrucciones}\nUSUARIO: {user_msg}"]
+            # Construcción de la entrada multimodal
+            contenido = [f"CONTEXTO: {instrucciones}\nCOMANDO: {user_msg}"]
             
-            # Si el usuario sube una imagen (captura de pantalla de la UI)
-            if image_data:
-                # Quitamos el prefijo 'data:image/png;base64,' si existe
-                header, encoded = image_data.split(",", 1) if "," in image_data else (None, image_data)
-                content_list.append(types.Part.from_bytes(
-                    data=base64.b64decode(encoded),
-                    mime_type="image/png"
-                ))
+            if image_b64:
+                # Procesar la imagen para que Shadow "vea" la pantalla
+                img_data = base64.b64decode(image_b64.split(",")[1] if "," in image_b64 else image_b64)
+                contenido.append(types.Part.from_bytes(data=img_data, mime_type="image/png"))
 
-            # 3. DISPARO AL NÚCLEO GEMMA 3 (Hosteado en Google Cloud)
+            # EJECUCIÓN EN NÚCLEO GEMMA-3
             response = client.models.generate_content(
                 model="models/gemma-3-27b-it",
-                contents=content_list
+                contents=contenido
             )
 
-            return JsonResponse({'reply': response.text})
+            return JsonResponse({
+                'reply': response.text,
+                'status': 'SECURE_CONNECTION_ESTABLISHED'
+            })
             
         except Exception as e:
-            return JsonResponse({'reply': f'[ERROR_SISTEMA]: Enlace roto. Detalle: {str(e)}'})
+            return JsonResponse({'reply': f'[SISTEMA_ERROR]: {str(e)}'})
 
     return render(request, 'bot_consulta.html')
 
