@@ -181,58 +181,61 @@ def restaurar_backup(request):
 
 
 import os
-import base64
 from google import genai
-from google.genai import types
 from django.db.models import Sum
 from django.http import JsonResponse
+from django.shortcuts import render
 from .models import Publicacion
 
 def bot_consulta(request):
+    # Si no es POST, renderizamos la página normalmente
+    if request.method == "GET":
+        return render(request, 'bot_consulta.html')
+
     if request.method == "POST":
         user_msg = request.POST.get('msg', '').lower()
-        image_b64 = request.POST.get('image') # Captura de pantalla enviada desde el celular
-
-        # 1. SINCRONIZACIÓN DE ACTIVOS REALES
-        items = Publicacion.objects.filter(vendido=False)
-        reporte_stock = "\n".join([f"- {p.titulo} (${p.precio})" for p in items])
-        total_cash = items.aggregate(total=Sum('precio'))['total'] or 0
-
-        # 2. PERSONALIDAD Y REGLAS (GCP GROUNDING)
-        instrucciones = (
-            f"Eres Shadow, agente multimodal de Otto-task en Google Cloud. "
-            f"STOCK_REAL: {reporte_stock}. VALOR_TOTAL: ${total_cash}. "
-            f"TAREA: Eres un UI Navigator. Si recibes una imagen, búscala en el STOCK_REAL. "
-            f"Si el usuario pide un producto, da el nombre exacto (ej. Redmi 15C). "
-            f"Estilo: Cyberpunk, español, ultra-eficiente."
-        )
 
         try:
-            client = genai.Client(api_key=os.environ.get("GOOGLE_API_KEY"))
+            # 1. ESCANEO DE BASE DE DATOS
+            items = Publicacion.objects.filter(vendido=False)
+            total_valor = items.aggregate(total=Sum('precio'))['total'] or 0
             
-            # Construcción de la entrada multimodal
-            contenido = [f"CONTEXTO: {instrucciones}\nCOMANDO: {user_msg}"]
-            
-            if image_b64:
-                # Procesar la imagen para que Shadow "vea" la pantalla
-                img_data = base64.b64decode(image_b64.split(",")[1] if "," in image_b64 else image_b64)
-                contenido.append(types.Part.from_bytes(data=img_data, mime_type="image/png"))
+            # Formateo detallado para que Shadow NO mienta
+            reporte = ""
+            for p in items:
+                reporte += f"- PRODUCTO: {p.titulo} | PRECIO: ${p.precio}\n"
 
-            # EJECUCIÓN EN NÚCLEO GEMMA-3
-            response = client.models.generate_content(
-                model="models/gemma-3-27b-it",
-                contents=contenido
+            # 2. CONFIGURACIÓN DEL CLIENTE
+            key = os.environ.get("GOOGLE_API_KEY")
+            if not key:
+                return JsonResponse({'reply': '[ERROR]: Falta la API KEY en el servidor.'})
+            
+            client = genai.Client(api_key=key)
+
+            # 3. INSTRUCCIONES RÍGIDAS (Para modo Agente de Ventas)
+            instrucciones = (
+                f"Eres Shadow, agente elite de Otto-task. "
+                f"STOCK: {reporte}. TOTAL: ${total_valor}. "
+                f"REGLAS: Usa los nombres completos del STOCK. "
+                f"Si preguntan por celulares, menciona el Redmi 15C. "
+                f"Estilo: Cyberpunk, corto, español."
             )
 
-            return JsonResponse({
-                'reply': response.text,
-                'status': 'SECURE_CONNECTION_ESTABLISHED'
-            })
-            
+            # 4. LLAMADA AL NÚCLEO
+            response = client.models.generate_content(
+                model="gemini-2.0-flash", # Cambiado a flash para mayor estabilidad en Render
+                contents=f"{instrucciones}\nUsuario: {user_msg}"
+            )
+
+            return JsonResponse({'reply': response.text})
+
         except Exception as e:
-            return JsonResponse({'reply': f'[SISTEMA_ERROR]: {str(e)}'})
+            # Esto imprimirá el error real en los logs de Render
+            print(f"DEBUG_ERROR: {str(e)}")
+            return JsonResponse({'reply': f'[ERROR_SISTEMA]: Revisa los logs. {str(e)}'})
 
     return render(request, 'bot_consulta.html')
+
 
 
 
