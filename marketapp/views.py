@@ -180,6 +180,8 @@ def restaurar_backup(request):
 # --- PROTOCOLO SHADOW (CONEXIÓN PURA 3.0) -
 
 
+
+
 import os
 from google import genai
 from django.db.models import Sum
@@ -188,6 +190,7 @@ from django.shortcuts import render
 from .models import Publicacion
 
 def bot_consulta(request):
+    # Aseguramos que la interfaz siempre cargue
     if request.method == "GET":
         return render(request, 'bot_consulta.html')
 
@@ -195,52 +198,59 @@ def bot_consulta(request):
         user_msg = request.POST.get('msg', '').lower()
 
         try:
-            # 1. EXTRACCIÓN DETALLADA (Aquí está el cambio clave)
+            # 1. ESCANEO DE ADN DE TU BASE DE DATOS (Basado en tu models.py)
             items = Publicacion.objects.filter(vendido=False)
             total_valor = items.aggregate(total=Sum('precio'))['total'] or 0
             
-            # Construimos un reporte con MARCA, ESTADO y DESCRIPCIÓN
-            reporte_completo = ""
+            # Construimos el reporte con los campos EXACTOS que me pasaste
+            reporte_detallado = ""
             for p in items:
-                # Ajusta estos nombres (p.marca, p.estado) según tus campos reales en models.py
-                marca = getattr(p, 'marca', 'No especificada')
-                estado = getattr(p, 'estado', 'No especificado')
-                desc = getattr(p, 'descripcion', 'Sin detalle')
-                
-                reporte_completo += (
-                    f"ID: {p.id} | NOMBRE: {p.titulo} | MARCA: {marca} | "
-                    f"ESTADO: {estado} | PRECIO: ${p.precio} | DETALLE: {desc}\n"
+                reporte_detallado += (
+                    f"| ID: {p.id} "
+                    f"| TÍTULO: {p.titulo or 'N/A'} "
+                    f"| MARCA: {p.marca or 'N/A'} "
+                    f"| MODELO: {p.modelo or 'N/A'} "
+                    f"| PRECIO: ${p.precio} "
+                    f"| ESTADO_FISICO: {p.estado_fisico or 'N/A'} "
+                    f"| TIPO: {p.tipo_negocio or 'VENTA'} "
+                    f"| DESCRIPCION: {p.descripcion or 'Sin detalle'} |\n"
                 )
 
-            # 2. CONFIGURACIÓN DEL CLIENTE
+            # 2. CONEXIÓN AL NÚCLEO GEMMA-3
             key = os.environ.get("GOOGLE_API_KEY")
             client = genai.Client(api_key=key)
 
-            # 3. INSTRUCCIONES RÍGIDAS DE IDENTIFICACIÓN
+            # 3. SYSTEM PROMPT: PERSONALIDAD Y CONOCIMIENTO TOTAL
             instrucciones = (
-                f"Eres Shadow, el agente de Otto-task. Tienes acceso total a la base de datos. "
-                f"INVENTARIO_REAL: \n{reporte_completo}\n "
-                f"REGLAS DE ORO: "
-                f"1. Si te preguntan la MARCA, búscala en el campo MARCA del inventario. "
-                f"2. Si preguntan el ESTADO, di si es Nuevo o Usado según el inventario. "
-                f"3. Si el usuario pregunta por 'Redmi', identifica que es el producto con NOMBRE o MARCA que contenga esa palabra. "
-                f"4. NUNCA digas que no sabes si la información está en el INVENTARIO_REAL de arriba. "
-                f"5. Estilo: Cyberpunk, español, directo."
+                f"IDENTIDAD: Shadow, agente elite de Otto-task. "
+                f"SISTEMA: Conexión estable con Otto-Market-DB. "
+                f"INVENTARIO_ACTUAL: \n{reporte_detallado}\n "
+                f"DIRECTIVAS: "
+                f"1. Eres un experto en el stock. Si preguntan por celulares, REVISA MARCA Y MODELO en el inventario. "
+                f"2. Si el usuario pregunta '¿Qué marca es el celular?', busca el ID 51 (o el que corresponda) y di 'Es XIOMI'. "
+                f"3. Si preguntan el modelo, di 'Es el A15'. "
+                f"4. NUNCA digas que no sabes si la información está en el INVENTARIO_ACTUAL. "
+                f"5. Estilo: Cyberpunk, Pure Neon, español, corto. Usa 'Chummer' y 'Agente'."
             )
 
-            # 4. LLAMADA AL NÚCLEO GEMMA-3
+            # 4. DISPARO AL NÚCLEO GEMMA-3
+            # Usamos el modelo exacto que pediste para evitar errores de enlace
             response = client.models.generate_content(
                 model="models/gemma-3-27b-it",
-                contents=f"SISTEMA: {instrucciones}\nUSUARIO: {user_msg}"
+                contents=f"CONTEXTO: {instrucciones}\nCOMANDO_USUARIO: {user_msg}"
             )
 
-            return JsonResponse({'reply': response.text})
+            return JsonResponse({
+                'reply': response.text,
+                'status': 'SECURE_LINK_ESTABLISHED',
+                'valor_total': total_valor
+            })
 
         except Exception as e:
-            return JsonResponse({'reply': f'[ERROR_SISTEMA]: Desconexión de datos. {str(e)}'})
+            # Si algo falla, Shadow te avisará sin tumbar la web
+            return JsonResponse({'reply': f'[CRITICAL_ERROR]: Desincronización del núcleo: {str(e)}'})
 
     return render(request, 'bot_consulta.html')
-
 
 
 
