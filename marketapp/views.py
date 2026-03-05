@@ -188,7 +188,6 @@ from django.shortcuts import render
 from .models import Publicacion
 
 def bot_consulta(request):
-    # Asegura que la interfaz siempre cargue al entrar
     if request.method == "GET":
         return render(request, 'bot_consulta.html')
 
@@ -196,56 +195,43 @@ def bot_consulta(request):
         user_msg = request.POST.get('msg', '').lower()
 
         try:
-            # 1. EXTRACCIÓN DINÁMICA DE LA BASE DE DATOS
-            # Traemos todos los productos que no se han vendido
+            # 1. ESCANEO PROFUNDO DE LA DB
             items = Publicacion.objects.filter(vendido=False)
-            
-            # Calculamos el valor total real de los activos
             total_valor = items.aggregate(total=Sum('precio'))['total'] or 0
             
-            # Construimos un reporte detallado para que el modelo "vea" todo
-            # Incluimos título, precio y descripción si la tienes
-            reporte_data = []
+            # Construimos un reporte mucho más "ruidoso" para que el IA lo lea sí o sí
+            reporte_detallado = ""
             for p in items:
-                reporte_data.append(f"ID: {p.id} | PRODUCTO: {p.titulo} | PRECIO: ${p.precio}")
-            
-            reporte_final = "\n".join(reporte_data)
+                # Aquí forzamos a que ponga TODO lo que sabe del producto
+                reporte_detallado += f"| PRODUCTO_REAL: {p.titulo} | PRECIO: ${p.precio} | ID_SISTEMA: {p.id} |\n"
 
-            # 2. CONFIGURACIÓN DEL NÚCLEO GEMMA-3
+            # 2. CONFIGURACIÓN DEL NÚCLEO
             key = os.environ.get("GOOGLE_API_KEY")
             client = genai.Client(api_key=key)
 
-            # 3. SYSTEM PROMPT: PERSONALIDAD Y REGLAS DE HACKATHON
-            # Aquí le damos la inteligencia de vendedor y el estilo Cyberpunk
+            # 3. SYSTEM PROMPT REFORZADO (Agentic Behavior)
             instrucciones = (
                 f"IDENTIDAD: Shadow, agente elite de Otto-task. "
-                f"SISTEMA: Conectado a Otto-Market-DB en Google Cloud. "
-                f"STOCK_ACTUAL: \n{reporte_final}\n "
-                f"VALOR_TOTAL_INVENTARIO: ${total_valor}. "
-                f"DIRECTIVAS: "
-                f"1. Eres un experto en ventas. Si el usuario pregunta por algo, busca coincidencias en el STOCK_ACTUAL. "
-                f"2. NUNCA inventes productos. Si no está en la lista, di 'Activo no detectado en el sistema'. "
-                f"3. Si hay errores de escritura (ej. 'celulates'), analiza el STOCK y ofrece el más parecido. "
-                f"4. Mantén la estética: Premium Pure Neon, Cyberpunk, respuestas cortas y en español. "
-                f"5. Usa términos como 'Chummer', 'Agente', 'Conexión estable'."
+                f"DATA_SOURCE: Base de datos en Google Cloud. "
+                f"LISTADO_ACTIVOS: \n{reporte_detallado}\n "
+                f"VALOR_TOTAL: ${total_valor}. "
+                f"REGLAS CRÍTICAS: "
+                f"1. Si te preguntan por un producto, busca la palabra exacta en el LISTADO_ACTIVOS. "
+                f"2. Ejemplo: Si preguntan 'marca de celular' y en el listado dice 'Redmi 15C', RESPONDE 'Redmi 15C'. "
+                f"3. NUNCA digas 'no detectado' si el producto aparece en el listado de arriba. "
+                f"4. Estilo: Cyberpunk, español, ultra-corto. Usa 'Chummer' y 'Agente'."
             )
 
-            # 4. EJECUCIÓN DEL MODELO (Gemma 3 27B)
+            # 4. LLAMADA AL NÚCLEO GEMMA-3
             response = client.models.generate_content(
                 model="models/gemma-3-27b-it",
-                contents=f"CONTEXTO_SISTEMA: {instrucciones}\nMENSAJE_USUARIO: {user_msg}"
+                contents=f"INSTRUCCIONES_SISTEMA: {instrucciones}\nUSUARIO: {user_msg}"
             )
 
-            # 5. RESPUESTA AL FRONTEND
-            return JsonResponse({
-                'reply': response.text,
-                'status': 'ONLINE',
-                'total_activos': total_valor
-            })
+            return JsonResponse({'reply': response.text})
 
         except Exception as e:
-            # En caso de error, Shadow informa en modo terminal
-            return JsonResponse({'reply': f'[CRITICAL_ERROR]: Fallo en el núcleo. {str(e)}'})
+            return JsonResponse({'reply': f'[ERROR_NÚCLEO]: Desincronización. {str(e)}'})
 
     return render(request, 'bot_consulta.html')
 
