@@ -195,45 +195,52 @@ def bot_consulta(request):
         user_msg = request.POST.get('msg', '').lower()
 
         try:
-            # 1. ESCANEO PROFUNDO DE LA DB
+            # 1. EXTRACCIÓN DETALLADA (Aquí está el cambio clave)
             items = Publicacion.objects.filter(vendido=False)
             total_valor = items.aggregate(total=Sum('precio'))['total'] or 0
             
-            # Construimos un reporte mucho más "ruidoso" para que el IA lo lea sí o sí
-            reporte_detallado = ""
+            # Construimos un reporte con MARCA, ESTADO y DESCRIPCIÓN
+            reporte_completo = ""
             for p in items:
-                # Aquí forzamos a que ponga TODO lo que sabe del producto
-                reporte_detallado += f"| PRODUCTO_REAL: {p.titulo} | PRECIO: ${p.precio} | ID_SISTEMA: {p.id} |\n"
+                # Ajusta estos nombres (p.marca, p.estado) según tus campos reales en models.py
+                marca = getattr(p, 'marca', 'No especificada')
+                estado = getattr(p, 'estado', 'No especificado')
+                desc = getattr(p, 'descripcion', 'Sin detalle')
+                
+                reporte_completo += (
+                    f"ID: {p.id} | NOMBRE: {p.titulo} | MARCA: {marca} | "
+                    f"ESTADO: {estado} | PRECIO: ${p.precio} | DETALLE: {desc}\n"
+                )
 
-            # 2. CONFIGURACIÓN DEL NÚCLEO
+            # 2. CONFIGURACIÓN DEL CLIENTE
             key = os.environ.get("GOOGLE_API_KEY")
             client = genai.Client(api_key=key)
 
-            # 3. SYSTEM PROMPT REFORZADO (Agentic Behavior)
+            # 3. INSTRUCCIONES RÍGIDAS DE IDENTIFICACIÓN
             instrucciones = (
-                f"IDENTIDAD: Shadow, agente elite de Otto-task. "
-                f"DATA_SOURCE: Base de datos en Google Cloud. "
-                f"LISTADO_ACTIVOS: \n{reporte_detallado}\n "
-                f"VALOR_TOTAL: ${total_valor}. "
-                f"REGLAS CRÍTICAS: "
-                f"1. Si te preguntan por un producto, busca la palabra exacta en el LISTADO_ACTIVOS. "
-                f"2. Ejemplo: Si preguntan 'marca de celular' y en el listado dice 'Redmi 15C', RESPONDE 'Redmi 15C'. "
-                f"3. NUNCA digas 'no detectado' si el producto aparece en el listado de arriba. "
-                f"4. Estilo: Cyberpunk, español, ultra-corto. Usa 'Chummer' y 'Agente'."
+                f"Eres Shadow, el agente de Otto-task. Tienes acceso total a la base de datos. "
+                f"INVENTARIO_REAL: \n{reporte_completo}\n "
+                f"REGLAS DE ORO: "
+                f"1. Si te preguntan la MARCA, búscala en el campo MARCA del inventario. "
+                f"2. Si preguntan el ESTADO, di si es Nuevo o Usado según el inventario. "
+                f"3. Si el usuario pregunta por 'Redmi', identifica que es el producto con NOMBRE o MARCA que contenga esa palabra. "
+                f"4. NUNCA digas que no sabes si la información está en el INVENTARIO_REAL de arriba. "
+                f"5. Estilo: Cyberpunk, español, directo."
             )
 
             # 4. LLAMADA AL NÚCLEO GEMMA-3
             response = client.models.generate_content(
                 model="models/gemma-3-27b-it",
-                contents=f"INSTRUCCIONES_SISTEMA: {instrucciones}\nUSUARIO: {user_msg}"
+                contents=f"SISTEMA: {instrucciones}\nUSUARIO: {user_msg}"
             )
 
             return JsonResponse({'reply': response.text})
 
         except Exception as e:
-            return JsonResponse({'reply': f'[ERROR_NÚCLEO]: Desincronización. {str(e)}'})
+            return JsonResponse({'reply': f'[ERROR_SISTEMA]: Desconexión de datos. {str(e)}'})
 
     return render(request, 'bot_consulta.html')
+
 
 
 
