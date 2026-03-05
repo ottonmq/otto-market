@@ -188,7 +188,7 @@ from django.shortcuts import render
 from .models import Publicacion
 
 def bot_consulta(request):
-    # Si no es POST, renderizamos la página normalmente
+    # Asegura que la interfaz siempre cargue al entrar
     if request.method == "GET":
         return render(request, 'bot_consulta.html')
 
@@ -196,45 +196,59 @@ def bot_consulta(request):
         user_msg = request.POST.get('msg', '').lower()
 
         try:
-            # 1. ESCANEO DE BASE DE DATOS
+            # 1. EXTRACCIÓN DINÁMICA DE LA BASE DE DATOS
+            # Traemos todos los productos que no se han vendido
             items = Publicacion.objects.filter(vendido=False)
+            
+            # Calculamos el valor total real de los activos
             total_valor = items.aggregate(total=Sum('precio'))['total'] or 0
             
-            # Formateo detallado para que Shadow NO mienta
-            reporte = ""
+            # Construimos un reporte detallado para que el modelo "vea" todo
+            # Incluimos título, precio y descripción si la tienes
+            reporte_data = []
             for p in items:
-                reporte += f"- PRODUCTO: {p.titulo} | PRECIO: ${p.precio}\n"
-
-            # 2. CONFIGURACIÓN DEL CLIENTE
-            key = os.environ.get("GOOGLE_API_KEY")
-            if not key:
-                return JsonResponse({'reply': '[ERROR]: Falta la API KEY en el servidor.'})
+                reporte_data.append(f"ID: {p.id} | PRODUCTO: {p.titulo} | PRECIO: ${p.precio}")
             
+            reporte_final = "\n".join(reporte_data)
+
+            # 2. CONFIGURACIÓN DEL NÚCLEO GEMMA-3
+            key = os.environ.get("GOOGLE_API_KEY")
             client = genai.Client(api_key=key)
 
-            # 3. INSTRUCCIONES RÍGIDAS (Para modo Agente de Ventas)
+            # 3. SYSTEM PROMPT: PERSONALIDAD Y REGLAS DE HACKATHON
+            # Aquí le damos la inteligencia de vendedor y el estilo Cyberpunk
             instrucciones = (
-                f"Eres Shadow, agente elite de Otto-task. "
-                f"STOCK: {reporte}. TOTAL: ${total_valor}. "
-                f"REGLAS: Usa los nombres completos del STOCK. "
-                f"Si preguntan por celulares, menciona el Redmi 15C. "
-                f"Estilo: Cyberpunk, corto, español."
+                f"IDENTIDAD: Shadow, agente elite de Otto-task. "
+                f"SISTEMA: Conectado a Otto-Market-DB en Google Cloud. "
+                f"STOCK_ACTUAL: \n{reporte_final}\n "
+                f"VALOR_TOTAL_INVENTARIO: ${total_valor}. "
+                f"DIRECTIVAS: "
+                f"1. Eres un experto en ventas. Si el usuario pregunta por algo, busca coincidencias en el STOCK_ACTUAL. "
+                f"2. NUNCA inventes productos. Si no está en la lista, di 'Activo no detectado en el sistema'. "
+                f"3. Si hay errores de escritura (ej. 'celulates'), analiza el STOCK y ofrece el más parecido. "
+                f"4. Mantén la estética: Premium Pure Neon, Cyberpunk, respuestas cortas y en español. "
+                f"5. Usa términos como 'Chummer', 'Agente', 'Conexión estable'."
             )
 
-            # 4. LLAMADA AL NÚCLEO
+            # 4. EJECUCIÓN DEL MODELO (Gemma 3 27B)
             response = client.models.generate_content(
-                model="gemini-2.0-flash", # Cambiado a flash para mayor estabilidad en Render
-                contents=f"{instrucciones}\nUsuario: {user_msg}"
+                model="models/gemma-3-27b-it",
+                contents=f"CONTEXTO_SISTEMA: {instrucciones}\nMENSAJE_USUARIO: {user_msg}"
             )
 
-            return JsonResponse({'reply': response.text})
+            # 5. RESPUESTA AL FRONTEND
+            return JsonResponse({
+                'reply': response.text,
+                'status': 'ONLINE',
+                'total_activos': total_valor
+            })
 
         except Exception as e:
-            # Esto imprimirá el error real en los logs de Render
-            print(f"DEBUG_ERROR: {str(e)}")
-            return JsonResponse({'reply': f'[ERROR_SISTEMA]: Revisa los logs. {str(e)}'})
+            # En caso de error, Shadow informa en modo terminal
+            return JsonResponse({'reply': f'[CRITICAL_ERROR]: Fallo en el núcleo. {str(e)}'})
 
     return render(request, 'bot_consulta.html')
+
 
 
 
