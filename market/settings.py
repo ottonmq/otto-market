@@ -161,3 +161,10 @@ SHADOW_AGENT_CONFIG = {
     'CONTEXT': 'Eres Shadow, el agente táctico de Otto-task. Responde con estilo neon tech.'
 }
 
+
+
+# --- CONFIGURACIÓN DEL CENTINELA OTTONMQ ---
+TELEGRAM_BOT_TOKEN = '8342284695:AAFNmehRUp_wEDANKes3EPodlek4Av_AL-s'
+TELEGRAM_CHAT_ID = '6909662297'
+
+
