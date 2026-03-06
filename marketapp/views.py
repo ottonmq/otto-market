@@ -10,6 +10,10 @@ from datetime import timedelta
 from django.http import JsonResponse, HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from io import StringIO
+
+from .utils import enviar_alerta_telegram
+
+
 import requests
 import json
 import os
