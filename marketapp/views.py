@@ -160,12 +160,22 @@ def vender_producto(request):
 def perfil(request):
     return render(request, 'perfil.html', {'mis_anuncios': Publicacion.objects.filter(vendedor=request.user).order_by('-fecha_creacion')})
 
+
 @login_required
 def marcar_vendido(request, anuncio_id):
     anuncio = get_object_or_404(Publicacion, id=anuncio_id, vendedor=request.user)
     anuncio.vendido = True
     anuncio.save()
+    
+    # ⚡ DISPARO AL CENTINELA (REPORTAR VENTA)
+    try:
+        mensaje_venta = f"¡VENTA CONFIRMADA, CHUMMER! 💰\n📦 Producto: {anuncio.titulo}\n💵 Precio: ${anuncio.precio}\n👤 Vendedor: {request.user.username}"
+        enviar_alerta_telegram(mensaje_venta)
+    except Exception as e:
+        print(f"Error al enviar notificación: {e}")
+
     return JsonResponse({'status': 'ok', 'message': 'Vendido correctamente'})
+
 
 def obtener_conteo_red():
     limite = timezone.now() - timedelta(minutes=10)
