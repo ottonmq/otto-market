@@ -565,58 +565,83 @@
 
         
       <style>
-    /* CONTENEDOR SEGURO - NO DISTORSIONA EL MENÚ */
+    /* CONTENEDOR EXPANDIDO Y CENTRADO */
     .btn-system-user {
         display: flex; 
         align-items: center; 
-        padding: 0 15px;
-        height: 100%;
+        justify-content: center; /* CENTRA EL CONTENIDO */
+        width: 100%;            /* OCUPA TODO EL ANCHO DISPONIBLE */
+        min-height: 60px;       /* EVITA QUE SE VEA PEQUEÑO */
+        padding: 10px 20px;
         color: #00f3ff !important;
         text-decoration: none;
         font-family: 'Courier New', monospace;
-        border-left: 3px solid #00f3ff;
+        border-top: 1px solid rgba(0, 243, 255, 0.2);
+        border-bottom: 1px solid rgba(0, 243, 255, 0.2);
+        border-left: 4px solid #00f3ff;
         position: relative;
         overflow: hidden;
-        background: rgba(0, 243, 255, 0.05);
+        background: #000;
         transition: 0.3s;
     }
 
-    /* ANIMACIÓN DE BARRIDO EN EL TEXTO */
+    /* EFECTO DE PARTÍCULAS INTERNAS */
+    .user-particles {
+        position: absolute;
+        top: 0; left: 0; width: 100%; height: 100%;
+        pointer-events: none;
+    }
+
+    .user-particles span {
+        position: absolute;
+        width: 2px; height: 2px;
+        background: #00f3ff;
+        border-radius: 50%;
+        opacity: 0;
+        animation: user-float 2s infinite linear;
+    }
+
+    /* Distribución de partículas */
+    .user-particles span:nth-child(1) { left: 10%; animation-delay: 0s; }
+    .user-particles span:nth-child(2) { left: 30%; animation-delay: 0.5s; }
+    .user-particles span:nth-child(3) { left: 50%; animation-delay: 1s; }
+    .user-particles span:nth-child(4) { left: 70%; animation-delay: 1.5s; }
+    .user-particles span:nth-child(5) { left: 90%; animation-delay: 0.8s; }
+
+    @keyframes user-float {
+        0% { transform: translateY(40px); opacity: 0; }
+        50% { opacity: 1; }
+        100% { transform: translateY(-40px); opacity: 0; }
+    }
+
+    /* NOMBRE GRANDE Y CON GLOW */
     .user-name-animate {
-        margin-left: 8px;
-        font-size: 14px;
+        margin-left: 12px;
+        font-size: 18px; /* LETRA MÁS GRANDE */
         font-weight: 900;
-        letter-spacing: 2px;
+        letter-spacing: 4px; /* ESTILO CYBERPUNK */
         position: relative;
         display: inline-block;
         color: #00f3ff;
-        /* Efecto de pulso de brillo */
-        animation: text-glow-pulse 3s infinite ease-in-out;
+        z-index: 5;
+        text-shadow: 0 0 10px #00f3ff;
+        animation: text-breathing 3s infinite ease-in-out;
     }
 
-    @keyframes text-glow-pulse {
-        0%, 100% { 
-            text-shadow: 0 0 5px #00f3ff;
-            opacity: 1;
-        }
-        50% { 
-            text-shadow: 0 0 15px #00f3ff, 0 0 25px #00f3ff;
-            opacity: 0.8;
-            color: #fff; /* Cambia a blanco en el pico de energía */
-        }
+    @keyframes text-breathing {
+        0%, 100% { transform: scale(1); opacity: 1; }
+        50% { transform: scale(1.05); opacity: 0.8; color: #fff; }
     }
 
-    /* LÍNEA DE ESCÁNER QUE PASA DETRÁS DEL NOMBRE */
+    /* ESCÁNER LÁSER */
     .btn-system-user::after {
         content: "";
         position: absolute;
-        top: 0;
-        left: -100%;
-        width: 100%;
-        height: 100%;
-        background: linear-gradient(90deg, transparent, rgba(0, 243, 255, 0.2), transparent);
-        animation: fast-scan 3.5s infinite linear;
-        z-index: 1;
+        top: 0; left: -100%;
+        width: 100%; height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(0, 243, 255, 0.3), transparent);
+        animation: fast-scan 3s infinite linear;
+        z-index: 2;
     }
 
     @keyframes fast-scan {
@@ -624,20 +649,18 @@
         100% { left: 100%; }
     }
 
-    /* EL ICONO TAMBIÉN TIENE VIDA */
     .bi-person-fill {
-        font-size: 1.1rem;
-        z-index: 2;
-        transition: 0.3s;
-    }
-
-    .btn-system-user:hover .bi-person-fill {
-        transform: scale(1.2);
-        filter: drop-shadow(0 0 5px #00f3ff);
+        font-size: 1.5rem; /* ICONO MÁS GRANDE */
+        z-index: 5;
+        color: #00f3ff;
     }
 </style>
 
 <a href="{% url 'perfil' %}" class="btn-system-user">
+    <div class="user-particles">
+        <span></span><span></span><span></span><span></span><span></span>
+    </div>
+    
     <i class="bi bi-person-fill"></i> 
     <span class="user-name-animate">
         {{ user.username|upper }}
