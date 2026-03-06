@@ -437,3 +437,31 @@ def descargar_backup(request):
     response['Content-Disposition'] = 'attachment; filename="backup_otto.json"'
     return response
 
+
+
+
+from django.contrib.auth.signals import user_logged_in
+from django.dispatch import receiver
+from .utils import enviar_alerta_telegram
+from django.utils import timezone
+
+@receiver(user_logged_in)
+def notificar_login(sender, request, user, **kwargs):
+    # Detectamos el dispositivo (opcional, requiere lógica extra, pero esto es lo básico)
+    user_agent = request.META.get('HTTP_USER_AGENT', 'Desconocido')
+    ip = request.META.get('REMOTE_ADDR', 'IP_Privada')
+
+    mensaje = (
+        f"🔓 *[SISTEMA_DE_ACCESO]*\n"
+        f"👤 Operador detectado: *{user.username}*\n"
+        f"🌐 IP: {ip}\n"
+        f"⌚ Hora: {timezone.now().strftime('%H:%M:%S')}\n"
+        f"----------------------------\n"
+        f"💬 [SHADOW]: Conexión establecida. Vigilancia activa."
+    )
+    
+    try:
+        enviar_alerta_telegram(mensaje)
+    except Exception as e:
+        print(f"Error en log de seguridad: {e}")
+
