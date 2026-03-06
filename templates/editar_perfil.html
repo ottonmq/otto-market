@@ -2,300 +2,243 @@
 {% block content %}
 
 <style>
-    /* CUERPO ROBÓTICO - PURE NEON TECH UPGRADE */
+    /* CUERPO ROBÓTICO CON BORDE DE LÍNEA INFINITA */
     .robot-chassis {
         max-width: 550px;
         margin: 50px auto;
-        background: #050505; /* Un negro más profundo para que resalte el neón */
-        border: 2px solid #00f2ff; /* Borde cian neón */
+        background: #050505;
         position: relative;
         overflow: hidden;
-        box-shadow: 0 0 20px rgba(0, 242, 255, 0.2);
         border-radius: 10px;
+        padding: 2px; /* Espacio para el borde animado */
+        box-shadow: 0 0 30px rgba(0, 0, 0, 0.8);
     }
 
-    /* EFECTO ESCÁNER LÁSER (MODO ACTIVO) */
-    .robot-chassis::before {
+    /* EL BORDE INFINITO (DATO FLUYENDO) */
+    .robot-chassis::after {
         content: "";
         position: absolute;
-        top: 0; left: 0; width: 100%; height: 3px;
+        top: -50%; left: -50%;
+        width: 200%; height: 200%;
+        background: conic-gradient(transparent, transparent, transparent, #00f2ff);
+        animation: rotate-border 4s linear infinite;
+        z-index: 1;
+    }
+
+    /* CAPA INTERNA PARA MANTENER EL FONDO NEGRO */
+    .inner-chassis {
+        position: relative;
+        background: #050505;
+        border-radius: 8px;
+        z-index: 2;
+        overflow: hidden;
+    }
+
+    @keyframes rotate-border {
+        100% { transform: rotate(360deg); }
+    }
+
+    /* ESCÁNER LÁSER PERPETUO */
+    .scan-line-main {
+        position: absolute;
+        top: 0; left: 0; width: 100%; height: 4px;
         background: #00f2ff;
-        box-shadow: 0 0 15px #00f2ff;
-        animation: scanline 3s linear infinite;
+        box-shadow: 0 0 20px #00f2ff;
+        animation: scanline 4s linear infinite;
         z-index: 10;
         pointer-events: none;
-        opacity: 0.6;
+        opacity: 0.5;
     }
 
     @keyframes scanline {
-        0% { top: 0; }
-        100% { top: 100%; }
+        0% { top: -5%; }
+        100% { top: 105%; }
     }
 
-    /* NÚCLEO DE IDENTIDAD (TU FOTO) */
+    /* NÚCLEO DE IDENTIDAD */
     .profile-core {
         text-align: center;
         padding: 30px;
         background: radial-gradient(circle at top, #001a1d 0%, #050505 100%);
-        border-bottom: 1px solid rgba(0, 242, 255, 0.3);
+        border-bottom: 1px solid rgba(0, 242, 255, 0.2);
     }
 
     .avatar-frame {
-        width: 120px;
-        height: 120px;
+        width: 125px; height: 125px;
         margin: 0 auto;
-        border: 3px solid #00f2ff;
-        border-radius: 8px; 
+        border: 2px solid #00f2ff;
+        border-radius: 5px; 
         padding: 5px;
         background: #000;
-        position: relative;
-        box-shadow: 0 0 15px rgba(0, 242, 255, 0.4);
+        box-shadow: 0 0 15px rgba(0, 242, 255, 0.3);
     }
 
     .avatar-frame img {
         width: 100%; height: 100%;
         object-fit: cover;
-        filter: contrast(1.1);
-        border-radius: 4px;
+        border-radius: 3px;
     }
 
     .user-tag {
         margin-top: 15px;
         font-family: 'Courier New', monospace;
         color: #00f2ff !important;
-        text-shadow: 0 0 10px rgba(0, 242, 255, 0.8);
+        text-shadow: 0 0 8px rgba(0, 242, 255, 0.8);
         font-weight: 900;
-        letter-spacing: 3px;
+        letter-spacing: 4px;
         font-size: 22px;
         text-transform: uppercase;
     }
 
-    /* SECCIÓN DE ERRORES (GLITCH ROJO) */
-    .error-log {
-        background: rgba(255, 0, 85, 0.1);
-        border: 1px solid #ff0055;
-        color: #ff0055;
-        padding: 15px;
-        margin: 20px;
-        font-family: monospace;
-        font-size: 13px;
-        text-shadow: 0 0 5px #ff0055;
-    }
-
-    /* INPUTS INDUSTRIALES - EL CORAZÓN DEL NEÓN */
+    /* FORMULARIO TECH */
     .terminal-field {
-        padding: 25px;
+        padding: 30px;
         background: #080808;
     }
 
     .field-group { margin-bottom: 25px; }
 
     .field-group label {
-        color: #00f2ff; /* AHORA SÍ SE VE EL NOMBRE, DIRECCIÓN, ETC */
-        font-size: 12px;
+        color: #00f2ff;
+        font-size: 11px;
         font-family: 'Courier New', monospace;
         display: block;
         margin-bottom: 8px;
         text-transform: uppercase;
         letter-spacing: 2px;
-        text-shadow: 0 0 5px rgba(0, 242, 255, 0.5);
     }
 
     .terminal-field input, .terminal-field textarea, .terminal-field select {
         width: 100% !important;
-        background: rgba(0, 242, 255, 0.03) !important;
+        background: rgba(0, 0, 0, 0.8) !important;
         border: 1px solid rgba(0, 242, 255, 0.3) !important;
-        color: #ffffff !important;
+        color: #fff !important;
         padding: 12px !important;
         font-family: 'Courier New', monospace !important;
-        font-size: 16px !important;
-        border-radius: 4px !important;
-        transition: 0.3s all;
+        border-radius: 2px !important;
     }
 
     .terminal-field input:focus {
-        border: 1px solid #00f2ff !important;
-        box-shadow: 0 0 15px rgba(0, 242, 255, 0.4);
-        background: rgba(0, 242, 255, 0.1) !important;
+        border-color: #00f2ff !important;
+        box-shadow: 0 0 10px rgba(0, 242, 255, 0.3);
         outline: none;
     }
 
-    /* BOTÓN ROBÓTICO NEÓN */
-    .btn-robot {
+    /* EL BOTÓN DE GUARDAR CON PARTÍCULAS */
+    .btn-save-particles {
+        position: relative;
         width: 100%;
+        height: 60px;
         background: #000;
-        color: #00f2ff;
         border: 2px solid #00f2ff;
-        padding: 16px;
-        font-weight: bold;
+        color: #00f2ff;
         font-family: 'Courier New', monospace;
+        font-weight: bold;
+        letter-spacing: 3px;
         cursor: pointer;
+        overflow: hidden;
         transition: 0.3s;
         text-transform: uppercase;
-        letter-spacing: 4px;
-        position: relative;
-        overflow: hidden;
+        display: flex;
+        align-items: center;
+        justify-content: center;
     }
 
-    .btn-robot:hover {
+    .btn-save-particles:hover {
+        background: rgba(0, 242, 255, 0.1);
+        box-shadow: 0 0 20px rgba(0, 242, 255, 0.4);
+    }
+
+    /* PARTÍCULAS DEL BOTÓN */
+    .p-box .p {
+        position: absolute;
+        width: 2px; height: 2px;
         background: #00f2ff;
-        color: #000;
-        box-shadow: 0 0 25px #00f2ff;
-        animation: glitch 0.3s infinite;
+        border-radius: 50%;
+        opacity: 0;
+        animation: fly-up 1.5s infinite linear;
     }
 
-    @keyframes glitch {
-        0% { transform: skew(0deg); }
-        50% { transform: skew(2deg); opacity: 0.8; }
-        100% { transform: skew(-2deg); }
+    @keyframes fly-up {
+        0% { transform: translateY(30px); opacity: 0; }
+        50% { opacity: 1; }
+        100% { transform: translateY(-40px); opacity: 0; }
+    }
+
+    .p-box .p:nth-child(1) { left: 10%; animation-delay: 0s; }
+    .p-box .p:nth-child(2) { left: 30%; animation-delay: 0.4s; }
+    .p-box .p:nth-child(3) { left: 50%; animation-delay: 0.8s; }
+    .p-box .p:nth-child(4) { left: 70%; animation-delay: 0.2s; }
+    .p-box .p:nth-child(5) { left: 90%; animation-delay: 0.6s; }
+
+    .error-log {
+        background: rgba(255, 0, 85, 0.05);
+        border: 1px solid #ff0055;
+        color: #ff0055;
+        padding: 15px;
+        margin: 20px;
+        font-family: monospace;
+        font-size: 12px;
     }
 </style>
 
 <div class="container">
     <div class="robot-chassis">
+        <div class="inner-chassis">
+            <span class="scan-line-main"></span>
 
-        <div class="profile-core">
-            <div class="avatar-frame">
-                {% if user.perfil.foto_perfil %}
-                    <img src="{{ user.perfil.foto_perfil.url }}" alt="AVATAR">
-                {% else %}
-                    <div style="width:100%; height:100%; background:#111; display:flex; align-items:center; justify-content:center; color:#00f2ff; font-family: monospace;">NO_DATA</div>
-                {% endif %}
-            </div>
-            <div class="user-tag">
-            {% if user.perfil.nombre %}
-                {{ user.perfil.nombre }}
-               {% else %}
-                {{ user.username }}
-             {% endif %}
-           </div>
-        </div>
-
-        {# DETECTOR DE ERRORES CRÍTICOS #}
-        {% if form.errors %}
-        <div class="error-log">
-            <strong>[ FALLO_EN_SISTEMA ]</strong>
-            <ul style="margin: 10px 0 0 0; padding-left: 15px; list-style: square;">
-                {% for field, errors in form.errors.items %}
-                    <li>{{ field|upper }}: {{ errors|striptags }}</li>
-                {% endfor %}
-            </ul>
-        </div>
-        {% endif %}
-
-        <div class="terminal-field">
-            <form method="post" enctype="multipart/form-data">
-                {% csrf_token %}
-
-                {% for field in form %}
-                <div class="field-group">
-                    <label>> {{ field.label|upper }}</label>
-                    {{ field }}
-                    {% if field.help_text %}
-                        <small style="color: rgba(0, 242, 255, 0.4); font-size: 10px; font-family: monospace;">{{ field.help_text }}</small>
+            <div class="profile-core">
+                <div class="avatar-frame">
+                    {% if user.perfil.foto_perfil %}
+                        <img src="{{ user.perfil.foto_perfil.url }}" alt="AVATAR">
+                    {% else %}
+                        <div style="width:100%; height:100%; background:#111; display:flex; align-items:center; justify-content:center; color:#00f2ff;">NO_IMG</div>
                     {% endif %}
                 </div>
-                {% endfor %}
+                <div class="user-tag">
+                {% if user.perfil.nombre %}{{ user.perfil.nombre }}{% else %}{{ user.username }}{% endif %}
+                </div>
+            </div>
 
-                <button type="submit" class="btn-robot">
-                   GUARDAR_NÚCLEO [✓]
-                </button>
-            </form>
-        </div>
+            {% if form.errors %}
+            <div class="error-log">
+                <strong>[!] FALLO_DE_DATOS</strong>
+                <ul style="margin-top: 5px; list-style: none; padding: 0;">
+                    {% for field, errors in form.errors.items %}
+                        <li>> {{ field|upper }}: {{ errors|striptags }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+            {% endif %}
 
-        <div style="background: #000; padding: 10px; border-top: 1px solid rgba(0, 242, 255, 0.2); text-align: right;">
-            <span style="color: #00f2ff; font-size: 9px; font-family: monospace; opacity: 0.6;">SYSTEM_VER: 2.0.26 | OTTO-TASK ACTIVE</span>
+            <div class="terminal-field">
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+
+                    {% for field in form %}
+                    <div class="field-group">
+                        <label>> {{ field.label|upper }}</label>
+                        {{ field }}
+                    </div>
+                    {% endfor %}
+
+                    <button type="submit" class="btn-save-particles">
+                        <div class="p-box">
+                            <span class="p"></span><span class="p"></span><span class="p"></span>
+                            <span class="p"></span><span class="p"></span>
+                        </div>
+                        <span style="z-index: 10;">SINCRONIZAR_NÚCLEO [✓]</span>
+                    </button>
+                </form>
+            </div>
+
+            <div style="background: #000; padding: 10px; border-top: 1px solid rgba(0, 242, 255, 0.1); text-align: center;">
+                <span style="color: #00f2ff; font-size: 9px; font-family: monospace; opacity: 0.4;">OTTO-TASK SECURITY PROTOCOL ACTIVE</span>
+            </div>
         </div>
     </div>
 </div>
 
-<div style="margin-bottom: 50px; display: block; width: 100%; height: 1px;"></div>
-
-<div style="display: flex; justify-content: center; width: 100%; margin-bottom: 100px;">
-    <div class="otto-static-btn" onclick="window.history.back()">
-        <div class="particles-box">
-            <span class="p"></span><span class="p"></span><span class="p"></span><span class="p"></span><span class="p"></span>
-        </div>
-        <div class="btn-content">
-            <span class="scan-line-btn"></span>
-            <span class="btn-arrow">⟸</span>
-            <span class="btn-text">TERMINAL</span>
-        </div>
-    </div>
-</div>
-
-<style>
-    /* CONTENEDOR DEL BOTÓN */
-    .otto-static-btn {
-        position: relative;
-        width: 180px;
-        height: 50px;
-        background: #000;
-        border: 2px solid #00f2ff;
-        border-radius: 4px;
-        cursor: pointer;
-        overflow: hidden;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        transition: 0.3s all;
-    }
-
-    .btn-content {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        color: #00f2ff;
-        font-family: 'Courier New', monospace;
-        font-weight: bold;
-        z-index: 5;
-    }
-
-    .scan-line-btn {
-        position: absolute;
-        top: 0;
-        left: -100%;
-        width: 100%;
-        height: 100%;
-        background: linear-gradient(90deg, transparent, rgba(0, 242, 255, 0.4), transparent);
-        animation: scan-loop 2.5s infinite linear;
-    }
-
-    @keyframes scan-loop {
-        0% { left: -100%; }
-        100% { left: 100%; }
-    }
-
-    .particles-box .p {
-        position: absolute;
-        width: 2px;
-        height: 2px;
-        background: #00f2ff;
-        border-radius: 50%;
-        opacity: 0;
-        animation: float-up 2s infinite linear;
-    }
-
-    .particles-box .p:nth-child(1) { left: 20%; animation-delay: 0s; }
-    .particles-box .p:nth-child(2) { left: 40%; animation-delay: 0.5s; }
-    .particles-box .p:nth-child(3) { left: 60%; animation-delay: 1s; }
-    .particles-box .p:nth-child(4) { left: 80%; animation-delay: 1.5s; }
-    .particles-box .p:nth-child(5) { left: 50%; animation-delay: 0.7s; }
-
-    @keyframes float-up {
-        0% { transform: translateY(25px); opacity: 0; }
-        50% { opacity: 1; }
-        100% { transform: translateY(-35px); opacity: 0; }
-    }
-
-    .otto-static-btn:active {
-        transform: scale(0.95);
-        box-shadow: 0 0 20px rgba(0, 242, 255, 0.5);
-    }
-
-    .otto-static-btn:hover {
-        background: rgba(0, 242, 255, 0.1);
-    }
-</style>
+<div style="padding-bottom: 80px;"></div>
 
 {% endblock %}
