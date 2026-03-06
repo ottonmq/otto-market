@@ -141,6 +141,10 @@ def dashboard(request):
     }
     return render(request, 'dashboard.html', {'stats': stats})
 
+
+
+
+
 @login_required
 def vender_producto(request):
     if request.method == 'POST':
@@ -150,24 +154,45 @@ def vender_producto(request):
             nuevo.vendedor = request.user
             nuevo.save()
             
-            # ⚡ NOTIFICACIÓN DE NUEVO INGRESO AL CENTINELA
+            # --- 🔍 ESCANEO DE TU RED PERSONAL ---
+            tus_activos = Publicacion.objects.filter(vendedor=request.user, vendido=False).count()
+            tus_ventas = Publicacion.objects.filter(vendedor=request.user, vendido=True).count()
+            tu_capital = Publicacion.objects.filter(vendedor=request.user, vendido=False).aggregate(Sum('precio'))['precio__sum'] or 0
+            
+            # --- 🌐 ESCANEO DEL MERCADO GLOBAL (TODOS) ---
+            global_activos = Publicacion.objects.filter(vendido=False).count()
+            global_valor = Publicacion.objects.filter(vendido=False).aggregate(Sum('precio'))['precio__sum'] or 0
+
+            # --- 📟 CONSTRUCCIÓN DEL REPORTE SHADOW ---
+            reporte = (
+                f"🏮 *[INTELIGENCIA_DE_MERCADO]*\n"
+                f"🚀 *NUEVO INGRESO:* {nuevo.titulo}\n"
+                f"----------------------------\n"
+                f"👤 *TU ESTADO (OPERADOR):*\n"
+                f"📦 Mis Artículos: {tus_activos}\n"
+                f"💰 Mi Capital en Stock: ${tu_capital}\n"
+                f"✅ Mis Ventas: {tus_ventas}\n"
+                f"----------------------------\n"
+                f"🌐 *ESTADO GLOBAL DEL MERCADO:*\n"
+                f"📡 Total Artículos en Red: {global_activos}\n"
+                f"💎 Valor Total del Mercado: ${global_valor}\n"
+                f"----------------------------\n"
+                f"💬 [SHADOW]: Chummer, controlas el {round((tus_activos/global_activos)*100, 1) if global_activos > 0 else 0}% del mercado activo."
+            )
+
             try:
-                mensaje_ingreso = (
-                    f"📦 *NUEVO_ACTIVO_DETECTADO*\n"
-                    f"🚀 Producto: {nuevo.titulo}\n"
-                    f"💰 Precio: ${nuevo.precio}\n"
-                    f"👤 Operador: {request.user.username}\n"
-                    f"🛠️ Estado: Indexado en la red."
-                )
-                enviar_alerta_telegram(mensaje_ingreso)
+                enviar_alerta_telegram(reporte)
             except Exception as e:
-                print(f"⚠️ Glitch en el reporte: {e}")
+                print(f"Glitch en el reporte global: {e}")
 
             messages.success(request, "UNIDAD_REGISTRADA")
             return redirect('perfil')
     else:
         form = PublicacionForm()
     return render(request, 'vender_hardware.html', {'form': form})
+
+
+
 
 
 @login_required
