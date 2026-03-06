@@ -1,3 +1,5 @@
+from .utils import enviar_alerta_telegram
+
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate, login, logout
@@ -10,9 +12,6 @@ from datetime import timedelta
 from django.http import JsonResponse, HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from io import StringIO
-
-from .utils import enviar_alerta_telegram
-
 
 import requests
 import json
