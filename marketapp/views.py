@@ -92,16 +92,38 @@ def detalle_anuncio(request, pk):
     })
 
 # --- 3. ESTADÍSTICAS Y GESTIÓN ---
+
+
 def stats_global(request):
+    # Conteo total de publicaciones
     total_db = Publicacion.objects.count()
+    
+    # NUEVA LÓGICA: Sumatoria de operaciones marcadas como vendidas
+    # Asegúrate de que el campo en tu modelo sea 'vendido'
+    vendidos_count = Publicacion.objects.filter(vendido=True).count()
+    
+    # Tiempo de actividad (5 min)
     hace_5_min = timezone.now() - timedelta(minutes=5)
     online_real = User.objects.filter(last_login__gte=hace_5_min).count()
+    
+    # Total de vistas acumuladas
     total_vistas = Publicacion.objects.aggregate(total=Sum('vistas'))['total'] or 0
+    
+    # Distribución por categorías para los gráficos neón
     categorias_reales = Categoria.objects.annotate(num=Count('publicacion'))
 
+    # Retorno a la interfaz GLOBAL_MARKET
     return render(request, 'stats.html', {
-        'total': total_db, 'activos': online_real, 'vistas': total_vistas, 'categorias': categorias_reales
+        'total': total_db, 
+        'vendidos': vendidos_count, 
+        'activos': online_real, 
+        'vistas': total_vistas, 
+        'categorias': categorias_reales
     })
+
+
+
+
 
 @login_required
 def dashboard(request):
