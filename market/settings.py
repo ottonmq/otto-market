@@ -155,16 +155,10 @@ SOCIALACCOUNT_LOGIN_ON_GET = True
 # GitHub NO detectará la clave porque se lee del entorno de Render
 GOOGLE_API_KEY = os.environ.get('GOOGLE_API_KEY') 
 
-SHADOW_AGENT_CONFIG = {
-    'NAME': 'Shadow',
-    'MODEL': 'gemini-2.0-flash',
-    'CONTEXT': 'Eres Shadow, el agente táctico de Otto-task. Responde con estilo neon tech.'
-}
 
 
 
-# --- CONFIGURACIÓN DEL CENTINELA OTTONMQ ---
-TELEGRAM_BOT_TOKEN = '8342284695:AAFNmehRUp_wEDANKes3EPodlek4Av_AL-s'
-TELEGRAM_CHAT_ID = '6909662297'
+
+
 
 
