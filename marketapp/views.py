@@ -149,11 +149,26 @@ def vender_producto(request):
             nuevo = form.save(commit=False)
             nuevo.vendedor = request.user
             nuevo.save()
+            
+            # ⚡ NOTIFICACIÓN DE NUEVO INGRESO AL CENTINELA
+            try:
+                mensaje_ingreso = (
+                    f"📦 *NUEVO_ACTIVO_DETECTADO*\n"
+                    f"🚀 Producto: {nuevo.titulo}\n"
+                    f"💰 Precio: ${nuevo.precio}\n"
+                    f"👤 Operador: {request.user.username}\n"
+                    f"🛠️ Estado: Indexado en la red."
+                )
+                enviar_alerta_telegram(mensaje_ingreso)
+            except Exception as e:
+                print(f"⚠️ Glitch en el reporte: {e}")
+
             messages.success(request, "UNIDAD_REGISTRADA")
             return redirect('perfil')
     else:
         form = PublicacionForm()
     return render(request, 'vender_hardware.html', {'form': form})
+
 
 @login_required
 def perfil(request):
