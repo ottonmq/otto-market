@@ -158,6 +158,13 @@ GOOGLE_API_KEY = os.environ.get('GOOGLE_API_KEY')
 
 
 
+# ==========================================================
+# 🏮 PROTOCOLO DE COMUNICACIÓN TELEGRAM (NOTIFICACIONES)
+# ==========================================================
+# Se leen directamente de Render para evitar filtraciones en GitHub
+TELEGRAM_BOT_TOKEN = os.environ.get('TELEGRAM_BOT_TOKEN')
+TELEGRAM_CHAT_ID = os.environ.get('TELEGRAM_CHAT_ID')
+
 
 
 
