@@ -77,11 +77,34 @@ def home(request):
         'vistas': trafico_total
     })
 
+
+
 def detalle_anuncio(request, pk):
     anuncio = get_object_or_404(Publicacion, pk=pk)
+    
+    # 📈 INCREMENTO DE VISTAS (LOGICA EXISTENTE)
     anuncio.vistas = (anuncio.vistas or 0) + 1
     anuncio.save()
 
+    # 🕵️‍♂️ EL OJO DEL CENTINELA (REPORTAR VISITA)
+    # Solo dispara si el visitante NO es el dueño del producto
+    if request.user != anuncio.vendedor:
+        visitante = request.user.username if request.user.is_authenticated else "Usuario_Anonimo"
+        
+        try:
+            mensaje_radar = (
+                f"👁️ *[RADAR_DETECCION_ACTIVA]*\n"
+                f"📦 *ARTÍCULO:* {anuncio.titulo}\n"
+                f"👤 *VISITANTE:* {visitante}\n"
+                f"📊 *VISTAS TOTALES:* {anuncio.vistas}\n"
+                f"----------------------------\n"
+                f"💬 [SHADOW]: Alguien está escaneando tu hardware."
+            )
+            enviar_alerta_telegram(mensaje_radar)
+        except Exception as e:
+            print(f"Glitch en el radar: {e}")
+
+    # 📊 PROCESAMIENTO DE RESEÑAS
     resenas = anuncio.resenas.all()
     total = resenas.count()
     promedio_data = resenas.aggregate(Avg('puntuacion'))['puntuacion__avg']
@@ -93,6 +116,11 @@ def detalle_anuncio(request, pk):
         'promedio': promedio,
         'total': total
     })
+
+
+
+
+
 
 # --- 3. ESTADÍSTICAS Y GESTIÓN ---
 
