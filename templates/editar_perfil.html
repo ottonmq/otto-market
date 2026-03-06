@@ -2,26 +2,29 @@
 {% block content %}
 
 <style>
-    /* CUERPO ROBÓTICO - ACERO Y CARBÓN */
+    /* CUERPO ROBÓTICO - PURE NEON TECH UPGRADE */
     .robot-chassis {
         max-width: 550px;
         margin: 50px auto;
-        background: #080808;
-        border: 2px solid #444;
+        background: #050505; /* Un negro más profundo para que resalte el neón */
+        border: 2px solid #00f2ff; /* Borde cian neón */
         position: relative;
         overflow: hidden;
-        box-shadow: 0 0 20px rgba(0,0,0,0.5);
+        box-shadow: 0 0 20px rgba(0, 242, 255, 0.2);
+        border-radius: 10px;
     }
 
-    /* EFECTO ESCÁNER DE FONDO (PISPÍLEO) */
+    /* EFECTO ESCÁNER LÁSER (MODO ACTIVO) */
     .robot-chassis::before {
         content: "";
         position: absolute;
-        top: 0; left: 0; width: 100%; height: 2px;
-        background: rgba(238, 238, 238, 0.1);
-        animation: scanline 4s linear infinite;
-        z-index: 1;
+        top: 0; left: 0; width: 100%; height: 3px;
+        background: #00f2ff;
+        box-shadow: 0 0 15px #00f2ff;
+        animation: scanline 3s linear infinite;
+        z-index: 10;
         pointer-events: none;
+        opacity: 0.6;
     }
 
     @keyframes scanline {
@@ -33,38 +36,41 @@
     .profile-core {
         text-align: center;
         padding: 30px;
-        background: linear-gradient(180deg, #111 0%, #080808 100%);
-        border-bottom: 1px solid #333;
+        background: radial-gradient(circle at top, #001a1d 0%, #050505 100%);
+        border-bottom: 1px solid rgba(0, 242, 255, 0.3);
     }
 
     .avatar-frame {
         width: 120px;
         height: 120px;
         margin: 0 auto;
-        border: 4px solid #444;
-        border-radius: 5px; 
+        border: 3px solid #00f2ff;
+        border-radius: 8px; 
         padding: 5px;
         background: #000;
         position: relative;
+        box-shadow: 0 0 15px rgba(0, 242, 255, 0.4);
     }
 
     .avatar-frame img {
         width: 100%; height: 100%;
         object-fit: cover;
-        filter: grayscale(0.5);
+        filter: contrast(1.1);
+        border-radius: 4px;
     }
 
     .user-tag {
         margin-top: 15px;
         font-family: 'Courier New', monospace;
-        color: #EEEEEE !important;
+        color: #00f2ff !important;
+        text-shadow: 0 0 10px rgba(0, 242, 255, 0.8);
         font-weight: 900;
         letter-spacing: 3px;
-        font-size: 20px;
+        font-size: 22px;
         text-transform: uppercase;
     }
 
-    /* SECCIÓN DE ERRORES (EL ESCÁNER ROJO) */
+    /* SECCIÓN DE ERRORES (GLITCH ROJO) */
     .error-log {
         background: rgba(255, 0, 85, 0.1);
         border: 1px solid #ff0055;
@@ -72,77 +78,88 @@
         padding: 15px;
         margin: 20px;
         font-family: monospace;
-        font-size: 12px;
+        font-size: 13px;
+        text-shadow: 0 0 5px #ff0055;
     }
 
-    /* INPUTS INDUSTRIALES */
+    /* INPUTS INDUSTRIALES - EL CORAZÓN DEL NEÓN */
     .terminal-field {
         padding: 25px;
-        background: #0a0a0a;
+        background: #080808;
     }
 
-    .field-group { margin-bottom: 20px; }
+    .field-group { margin-bottom: 25px; }
 
     .field-group label {
-        color: #777;
-        font-size: 10px;
-        font-family: monospace;
+        color: #00f2ff; /* AHORA SÍ SE VE EL NOMBRE, DIRECCIÓN, ETC */
+        font-size: 12px;
+        font-family: 'Courier New', monospace;
         display: block;
-        margin-bottom: 5px;
+        margin-bottom: 8px;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        text-shadow: 0 0 5px rgba(0, 242, 255, 0.5);
     }
 
     .terminal-field input, .terminal-field textarea, .terminal-field select {
         width: 100% !important;
-        background: #000 !important;
-        border: 1px solid #333 !important;
-        color: #EEEEEE !important;
-        padding: 10px !important;
-        font-family: monospace !important;
-        font-size: 15px !important;
-        border-radius: 0 !important;
+        background: rgba(0, 242, 255, 0.03) !important;
+        border: 1px solid rgba(0, 242, 255, 0.3) !important;
+        color: #ffffff !important;
+        padding: 12px !important;
+        font-family: 'Courier New', monospace !important;
+        font-size: 16px !important;
+        border-radius: 4px !important;
+        transition: 0.3s all;
     }
 
     .terminal-field input:focus {
-        border: 1px solid #EEEEEE !important;
+        border: 1px solid #00f2ff !important;
+        box-shadow: 0 0 15px rgba(0, 242, 255, 0.4);
+        background: rgba(0, 242, 255, 0.1) !important;
         outline: none;
     }
 
-    /* BOTÓN ROBÓTICO */
+    /* BOTÓN ROBÓTICO NEÓN */
     .btn-robot {
         width: 100%;
-        background: #222;
-        color: #EEEEEE;
-        border: 1px solid #444;
-        padding: 15px;
+        background: #000;
+        color: #00f2ff;
+        border: 2px solid #00f2ff;
+        padding: 16px;
         font-weight: bold;
-        font-family: monospace;
+        font-family: 'Courier New', monospace;
         cursor: pointer;
-        transition: 0.2s;
+        transition: 0.3s;
         text-transform: uppercase;
+        letter-spacing: 4px;
+        position: relative;
+        overflow: hidden;
     }
 
     .btn-robot:hover {
-        background: #EEEEEE;
+        background: #00f2ff;
         color: #000;
-        animation: glitch 0.2s infinite;
+        box-shadow: 0 0 25px #00f2ff;
+        animation: glitch 0.3s infinite;
     }
 
     @keyframes glitch {
-        0% { opacity: 1; transform: skew(0deg); }
-        50% { opacity: 0.8; transform: skew(2deg); }
-        100% { opacity: 1; transform: skew(-2deg); }
+        0% { transform: skew(0deg); }
+        50% { transform: skew(2deg); opacity: 0.8; }
+        100% { transform: skew(-2deg); }
     }
 </style>
 
 <div class="container">
     <div class="robot-chassis">
-        
+
         <div class="profile-core">
             <div class="avatar-frame">
                 {% if user.perfil.foto_perfil %}
                     <img src="{{ user.perfil.foto_perfil.url }}" alt="AVATAR">
                 {% else %}
-                    <div style="width:100%; height:100%; background:#222; display:flex; align-items:center; justify-content:center; color:#555;">NO_IMG</div>
+                    <div style="width:100%; height:100%; background:#111; display:flex; align-items:center; justify-content:center; color:#00f2ff; font-family: monospace;">NO_DATA</div>
                 {% endif %}
             </div>
             <div class="user-tag">
@@ -152,14 +169,13 @@
                 {{ user.username }}
              {% endif %}
            </div>
-
-
+        </div>
 
         {# DETECTOR DE ERRORES CRÍTICOS #}
         {% if form.errors %}
         <div class="error-log">
-            <strong>[ FALLO_EN_VALIDACIÓN ]</strong>
-            <ul style="margin: 10px 0 0 0; padding-left: 15px;">
+            <strong>[ FALLO_EN_SISTEMA ]</strong>
+            <ul style="margin: 10px 0 0 0; padding-left: 15px; list-style: square;">
                 {% for field, errors in form.errors.items %}
                     <li>{{ field|upper }}: {{ errors|striptags }}</li>
                 {% endfor %}
@@ -170,60 +186,50 @@
         <div class="terminal-field">
             <form method="post" enctype="multipart/form-data">
                 {% csrf_token %}
-                
+
                 {% for field in form %}
                 <div class="field-group">
                     <label>> {{ field.label|upper }}</label>
                     {{ field }}
                     {% if field.help_text %}
-                        <small style="color: #444; font-size: 9px;">{{ field.help_text }}</small>
+                        <small style="color: rgba(0, 242, 255, 0.4); font-size: 10px; font-family: monospace;">{{ field.help_text }}</small>
                     {% endif %}
                 </div>
                 {% endfor %}
 
                 <button type="submit" class="btn-robot">
-                   GUARDAR_PERFIL [✓]
+                   GUARDAR_NÚCLEO [✓]
                 </button>
             </form>
         </div>
 
-        <div style="background: #000; padding: 10px; border-top: 1px solid #222; text-align: right;">
-            <span style="color: #333; font-size: 9px; font-family: monospace;">SYSTEM_VER: 2.0.26 | STATUS: STABLE</span>
+        <div style="background: #000; padding: 10px; border-top: 1px solid rgba(0, 242, 255, 0.2); text-align: right;">
+            <span style="color: #00f2ff; font-size: 9px; font-family: monospace; opacity: 0.6;">SYSTEM_VER: 2.0.26 | OTTO-TASK ACTIVE</span>
         </div>
     </div>
 </div>
 
+<div style="margin-bottom: 50px; display: block; width: 100%; height: 1px;"></div>
 
-
-
-<div style="margin-bottom: 150px; display: block; width: 100%; height: 1px;"></div>
-
-<style>
-    /* Forzamos a que el último elemento tenga aire abajo */
-    main, section, .container {
-        padding-bottom: 100px !important;
-    }
-</style>
-
-
-
-<div class="otto-static-btn" onclick="window.history.back()">
-    <div class="particles-box">
-        <span class="p"></span><span class="p"></span><span class="p"></span><span class="p"></span><span class="p"></span>
-    </div>
-    <div class="btn-content">
-        <span class="scan-line-btn"></span>
-        <span class="btn-arrow">⟸</span>
-        <span class="btn-text">VOLVER</span>
+<div style="display: flex; justify-content: center; width: 100%; margin-bottom: 100px;">
+    <div class="otto-static-btn" onclick="window.history.back()">
+        <div class="particles-box">
+            <span class="p"></span><span class="p"></span><span class="p"></span><span class="p"></span><span class="p"></span>
+        </div>
+        <div class="btn-content">
+            <span class="scan-line-btn"></span>
+            <span class="btn-arrow">⟸</span>
+            <span class="btn-text">TERMINAL</span>
+        </div>
     </div>
 </div>
 
 <style>
     /* CONTENEDOR DEL BOTÓN */
     .otto-static-btn {
-        position: relative; /* YA NO ES FIXED */
-        width: 160px;
-        height: 48px;
+        position: relative;
+        width: 180px;
+        height: 50px;
         background: #000;
         border: 2px solid #00f2ff;
         border-radius: 4px;
@@ -233,7 +239,6 @@
         align-items: center;
         justify-content: center;
         transition: 0.3s all;
-        margin: 10px 0; /* Espacio para que no pegue con lo demás */
     }
 
     .btn-content {
@@ -246,7 +251,6 @@
         z-index: 5;
     }
 
-    /* EFECTO ESCÁNER */
     .scan-line-btn {
         position: absolute;
         top: 0;
@@ -262,7 +266,6 @@
         100% { left: 100%; }
     }
 
-    /* PARTÍCULAS */
     .particles-box .p {
         position: absolute;
         width: 2px;
@@ -285,7 +288,6 @@
         100% { transform: translateY(-35px); opacity: 0; }
     }
 
-    /* EFECTO AL TOCAR */
     .otto-static-btn:active {
         transform: scale(0.95);
         box-shadow: 0 0 20px rgba(0, 242, 255, 0.5);
@@ -295,9 +297,5 @@
         background: rgba(0, 242, 255, 0.1);
     }
 </style>
-
-
-
-
 
 {% endblock %}
