@@ -511,11 +511,11 @@
 
             <div style="text-align: center;">
     <span style="font-size: 15px; font-weight: bold; color: #fff;">
-        {# Mostramos el promedio real (4, 3, 2) que calculamos en la vista #}
-        {{ anuncio.stars_view|default:"0" }}
+        {# Ahora sí muestra el promedio real: 4.0, 3.7, etc. #}
+        {{ anuncio.stars_view|default:"0.0" }}
     </span>
     <span style="color: #00d4ff; font-size: 18px; letter-spacing: 2px;">
-        {# Usamos el PROMEDIO para pintar las estrellas, NO el conteo #}
+        {# CAMBIO CLAVE: Usamos 'stars_view' para pintar las estrellas #}
         {% with prom=anuncio.stars_view|default:0 %}
             {% if prom >= 4.5 %}★★★★★
             {% elif prom >= 3.5 %}★★★★☆
@@ -529,10 +529,11 @@
 
 <div style="border-top: 1px solid #222; width: 90%; text-align: center; padding-top: 1px;">
     <span style="color: #9aa0a6; font-size: 15px;">
-        {# Aquí sí mostramos cuántas personas opinaron #}
+        {# Mostramos el conteo real de reseñas #}
         {{ anuncio.count_view|default:"0" }} RESEÑAS
     </span>
 </div>
+
 
 
 
