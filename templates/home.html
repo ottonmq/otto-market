@@ -352,6 +352,49 @@
 
 
 
+<div style="margin: 15px; background: #000; border: 1px solid #1e1e1e; border-radius: 15px; overflow: hidden; box-shadow: 0 0 20px rgba(0, 212, 255, 0.1);">
+    
+    <div style="background: rgba(0, 212, 255, 0.1); padding: 8px 15px; border-bottom: 1px solid #222; display: flex; justify-content: space-between; align-items: center;">
+        <span style="color: #00d4ff; font-family: 'Courier New', monospace; font-size: 10px; font-weight: bold; letter-spacing: 2px;">
+            <span style="animation: blink 1s infinite;">●</span> SISTEMA DE VISUALIZACIÓN HOLOGRÁFICA
+        </span>
+        <span style="color: #39ff14; font-size: 9px; font-weight: bold;">AR READY</span>
+    </div>
+
+    <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/4.1.0/model-viewer.min.js"></script>
+    <model-viewer 
+        src="https://modelviewer.dev/shared-assets/models/Astronaut.glb" 
+        ar ar-modes="webxr scene-viewer quick-look" 
+        camera-controls 
+        auto-rotate 
+        shadow-intensity="1" 
+        style="width: 100%; height: 250px; background: radial-gradient(circle, #111 0%, #000 100%);">
+        
+        <div slot="poster" style="color: #444; display: flex; align-items: center; justify-content: center; height: 100%; font-size: 12px;">
+            CARGANDO MATRIZ 3D...
+        </div>
+
+        <button slot="ar-button" style="background: #00d4ff; border: none; border-radius: 20px; color: #000; padding: 8px 16px; position: absolute; bottom: 15px; left: 15px; font-weight: 900; font-size: 11px; box-shadow: 0 0 10px #00d4ff;">
+            VER EN REALIDAD AUMENTADA
+        </button>
+    </model-viewer>
+
+    <div style="padding: 10px; text-align: center; border-top: 1px solid #1a1a1a;">
+        <p style="color: #666; font-size: 10px; margin: 0; letter-spacing: 1px;">INTERACTÚA CON EL MODELO PARA INSPECCIÓN TÉCNICA</p>
+    </div>
+</div>
+
+<style>
+@keyframes blink { 0% { opacity: 0; } 50% { opacity: 1; } 100% { opacity: 0; } }
+</style>
+
+
+
+
+
+
+
+
 
 <div class="scanner-main">
     <div class="grid-radar">
