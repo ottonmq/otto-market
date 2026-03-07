@@ -53,20 +53,17 @@ def logout_view(request):
 # --- 2. NAVEGACIÓN PÚBLICA ---
 
 
-
-
 def home(request):
     nodos_activos, trafico_total = obtener_conteo_red()
     query = request.GET.get('q', '').strip()
     categorias = Categoria.objects.all()
 
-    # 1. Base de anuncios con anotaciones de estrellas
+    # CAMBIAMOS 'total_resenas' por 'conteo_resenas' para evitar el choque
     anuncios = Publicacion.objects.filter(vendido=False).annotate(
         promedio_estrellas_raw=Avg('resenas__puntuacion'),
-        total_resenas=Count('resenas')
+        conteo_resenas=Count('resenas') # <--- CAMBIO AQUÍ
     )
 
-    # 2. Filtro de búsqueda inteligente
     if query:
         anuncios = anuncios.filter(
             Q(titulo__icontains=query) | 
@@ -74,22 +71,20 @@ def home(request):
             Q(categoria__nombre__icontains=query)
         ).distinct()
 
-    # 3. Formateo de estrellas (para evitar errores de redondeo en el template)
     for a in anuncios:
         a.promedio_estrellas = round(a.promedio_estrellas_raw, 1) if a.promedio_estrellas_raw else 0.0
 
-    # 🚀 4. LÓGICA AR: Buscamos el último producto que SÍ tenga modelo 3D para el visor
-    # Esto es lo que alimentará al model-viewer del home
     destacado_3d = Publicacion.objects.filter(modelo_3d__isnull=False, vendido=False).last()
 
     return render(request, 'home.html', {
         'anuncios': anuncios.order_by('-fecha_creacion'),
-        'destacado_3d': destacado_3d, # <--- Enviamos el objeto 3D al visor
+        'destacado_3d': destacado_3d,
         'categorias': categorias,
         'query': query,
         'online': nodos_activos if nodos_activos > 0 else 1,
         'vistas': trafico_total
     })
+
 
 
 
