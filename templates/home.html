@@ -376,7 +376,7 @@
 
     <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/4.1.0/model-viewer.min.js"></script>
 
-    {% with destacado=anuncios.0 %} <model-viewer 
+    {% with destacado=destacado_3d %} <model-viewer 
         src="{% if destacado.modelo_3d %}{{ destacado.modelo_3d.url }}{% else %}https://modelviewer.dev/shared-assets/models/Astronaut.glb{% endif %}" 
         poster="{% if destacado.foto %}{{ destacado.foto.url }}{% endif %}"
         ar ar-modes="webxr scene-viewer quick-look" 
