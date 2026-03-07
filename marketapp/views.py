@@ -59,7 +59,7 @@ def home(request):
     query = request.GET.get('q', '').strip()
     categorias = Categoria.objects.all()
 
-    # Solo el filtro básico, sin inventos
+    # Solo el filtro original, sin el bucle que rompe todo
     anuncios = Publicacion.objects.filter(vendido=False).order_by('-fecha_creacion')
 
     if query:
@@ -79,7 +79,6 @@ def home(request):
         'online': nodos_activos if nodos_activos > 0 else 1,
         'vistas': trafico_total
     })
-
 
 
 
