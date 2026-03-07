@@ -383,6 +383,10 @@ def bot_consulta(request):
 def pagina_bot(request):
     return render(request, 'bot_consulta.html')
 
+
+
+
+@login_required
 def ver_opiniones(request, pk):
     publicacion = get_object_or_404(Publicacion, pk=pk)
     if request.method == "POST":
