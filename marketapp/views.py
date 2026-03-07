@@ -79,11 +79,8 @@ def home(request):
             
         a.count_view = stats['total'] or 0
 
-    destacado_3d = Publicacion.objects.filter(modelo_3d__isnull=False, vendido=False).last()
-
     return render(request, 'home.html', {
         'anuncios': anuncios, 
-        'destacado_3d': destacado_3d,
         'categorias': categorias,
         'query': query,
         'online': nodos_activos if nodos_activos > 0 else 1,
