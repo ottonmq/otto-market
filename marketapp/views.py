@@ -53,21 +53,29 @@ def logout_view(request):
 # --- 2. NAVEGACIÓN PÚBLICA ---
 
 
+from django.db.models import Avg, Count
 
 def home(request):
     nodos_activos, trafico_total = obtener_conteo_red()
     query = request.GET.get('q', '').strip()
     categorias = Categoria.objects.all()
 
-    # Solo el filtro original, sin el bucle que rompe todo
     anuncios = Publicacion.objects.filter(vendido=False).order_by('-fecha_creacion')
 
     if query:
         anuncios = anuncios.filter(
-            Q(titulo__icontains=query) | 
-            Q(marca__icontains=query) | 
-            Q(categoria__nombre__icontains=query)
+            Q(titulo__icontains=query) | Q(marca__icontains=query)
         ).distinct()
+
+    # 🔗 LÓGICA DE PROMEDIO: Esto es lo que suma de verdad
+    for a in anuncios:
+        # Pedimos el promedio (Avg) de las puntuaciones de las reseñas
+        stats = a.resenas.aggregate(prom=Avg('puntuacion'), total=Count('id'))
+        
+        # stars_view será el promedio real (ej: 3.5 o 4.0)
+        a.stars_view = stats['prom'] if stats['prom'] else 0.0
+        # count_view será el número de reseñas (ej: 2 reseñas)
+        a.count_view = stats['total'] or 0
 
     destacado_3d = Publicacion.objects.filter(modelo_3d__isnull=False, vendido=False).last()
 
@@ -76,8 +84,8 @@ def home(request):
         'destacado_3d': destacado_3d,
         'categorias': categorias,
         'query': query,
-        'online': nodos_activos if nodos_activos > 0 else 1,
-        'vistas': trafico_total
+        'online': nodos_activos if nodos_activos > 0 else 1, # Respeta tus nodos
+        'vistas': trafico_total # Respeta tu tráfico
     })
 
 
