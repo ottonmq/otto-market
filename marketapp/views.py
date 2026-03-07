@@ -54,16 +54,13 @@ def logout_view(request):
 
 
 def home(request):
-    # 📡 TUS DATOS ORIGINALES (NO SE TOCAN)
+    # 📡 TUS DATOS ORIGINALES (MANTENIDOS)
     nodos_activos, trafico_total = obtener_conteo_red()
     query = request.GET.get('q', '').strip()
     categorias = Categoria.objects.all()
 
-    # 🚀 MOTOR DE ANUNCIOS: 'prom_final' y 'count_final' calculan la data
-    anuncios = Publicacion.objects.filter(vendido=False).annotate(
-        prom_final=Avg('resenas__puntuacion'),
-        count_final=Count('resenas')
-    )
+    # 🚀 FILTRO DE ANUNCIOS: Como lo tenías antes
+    anuncios = Publicacion.objects.filter(vendido=False)
 
     if query:
         anuncios = anuncios.filter(
@@ -72,13 +69,17 @@ def home(request):
             Q(categoria__nombre__icontains=query)
         ).distinct()
 
-    # ⚡ CONEXIÓN CRÍTICA: Cambiamos los nombres para que tu HTML los vea
+    # 🔗 RECONEXIÓN DEL RADAR: Esto saca las estrellas del "Modo Adorno"
     for a in anuncios:
-        # Ahora se llaman EXACTAMENTE como en tu home.html
-        a.stars_view = round(a.prom_final, 1) if a.prom_final else 0.0
-        a.count_view = a.count_final
+        # Consultamos la tabla de reseñas directamente para este anuncio
+        puntos = a.resenas.aggregate(Avg('puntuacion'), Count('id'))
+        
+        # 'stars_view' es el nombre que tu home.html necesita para el color (Línea 403)
+        a.stars_view = float(round(puntos['puntuacion__avg'], 1)) if puntos['puntuacion__avg'] else 0.0
+        # 'count_view' es el que muestra el número de reseñas en el diseño
+        a.count_view = puntos['id__count'] or 0
 
-    # 📦 LÓGICA AR: Objeto para el visor holográfico
+    # 📦 LÓGICA AR: No se toca para no romper el visor holográfico
     destacado_3d = Publicacion.objects.filter(modelo_3d__isnull=False, vendido=False).last()
 
     return render(request, 'home.html', {
@@ -89,8 +90,6 @@ def home(request):
         'online': nodos_activos if nodos_activos > 0 else 1,
         'vistas': trafico_total
     })
-
-
 
 
 
