@@ -511,16 +511,17 @@
 
             <div style="text-align: center;">
     <span style="font-size: 15px; font-weight: bold; color: #fff;">
-        {# Sumamos y sacamos el promedio real sin decimales extras #}
-        {{ anuncio.resenas.all.count|default:"0" }}
+        {# Mostramos el promedio real (4, 3, 2) que calculamos en la vista #}
+        {{ anuncio.stars_view|default:"0" }}
     </span>
     <span style="color: #00d4ff; font-size: 18px; letter-spacing: 2px;">
-        {% with total=anuncio.resenas.count %}
-            {% if total >= 5 %}★★★★★
-            {% elif total >= 4 %}★★★★☆
-            {% elif total >= 3 %}★★★☆☆
-            {% elif total >= 2 %}★★☆☆☆
-            {% elif total >= 1 %}★☆☆☆☆
+        {# Usamos el PROMEDIO para pintar las estrellas, NO el conteo #}
+        {% with prom=anuncio.stars_view|default:0 %}
+            {% if prom >= 4.5 %}★★★★★
+            {% elif prom >= 3.5 %}★★★★☆
+            {% elif prom >= 2.5 %}★★★☆☆
+            {% elif prom >= 1.5 %}★★☆☆☆
+            {% elif prom >= 0.5 %}★☆☆☆☆
             {% else %}☆☆☆☆☆{% endif %}
         {% endwith %}
     </span>
@@ -528,9 +529,11 @@
 
 <div style="border-top: 1px solid #222; width: 90%; text-align: center; padding-top: 1px;">
     <span style="color: #9aa0a6; font-size: 15px;">
-        {{ anuncio.resenas.count }} RESEÑAS
+        {# Aquí sí mostramos cuántas personas opinaron #}
+        {{ anuncio.count_view|default:"0" }} RESEÑAS
     </span>
 </div>
+
 
 
         </div>
