@@ -53,16 +53,14 @@ def logout_view(request):
 # --- 2. NAVEGACIÓN PÚBLICA ---
 
 
+
 def home(request):
     nodos_activos, trafico_total = obtener_conteo_red()
     query = request.GET.get('q', '').strip()
     categorias = Categoria.objects.all()
 
-    # 🚀 LA MAGIA: 'annotate' hace la suma y el promedio mucho más rápido que el for
-    anuncios = Publicacion.objects.filter(vendido=False).annotate(
-        stars_view=Avg('resenas__puntuacion'),
-        count_view=Count('resenas')
-    ).order_by('-fecha_creacion')
+    # Solo el filtro básico, sin inventos
+    anuncios = Publicacion.objects.filter(vendido=False).order_by('-fecha_creacion')
 
     if query:
         anuncios = anuncios.filter(
@@ -74,7 +72,7 @@ def home(request):
     destacado_3d = Publicacion.objects.filter(modelo_3d__isnull=False, vendido=False).last()
 
     return render(request, 'home.html', {
-        'anuncios': anuncios, # Ya van ordenados y con sus estrellas cargadas
+        'anuncios': anuncios, 
         'destacado_3d': destacado_3d,
         'categorias': categorias,
         'query': query,
