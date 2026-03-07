@@ -67,14 +67,16 @@ def home(request):
             Q(titulo__icontains=query) | Q(marca__icontains=query)
         ).distinct()
 
-    # 🔗 LÓGICA DE PROMEDIO: Esto es lo que suma de verdad
+    # 🔗 LÓGICA DE PROMEDIO: Con redondeo para evitar distorsión
     for a in anuncios:
-        # Pedimos el promedio (Avg) de las puntuaciones de las reseñas
         stats = a.resenas.aggregate(prom=Avg('puntuacion'), total=Count('id'))
-        
-        # stars_view será el promedio real (ej: 3.5 o 4.0)
-        a.stars_view = stats['prom'] if stats['prom'] else 0.0
-        # count_view será el número de reseñas (ej: 2 reseñas)
+
+        # REDONDEO: Limitamos a 1 decimal (ej: 3.7) para que quepa en el radar
+        if stats['prom']:
+            a.stars_view = round(stats['prom'], 1) 
+        else:
+            a.stars_view = 0.0
+            
         a.count_view = stats['total'] or 0
 
     destacado_3d = Publicacion.objects.filter(modelo_3d__isnull=False, vendido=False).last()
@@ -84,9 +86,10 @@ def home(request):
         'destacado_3d': destacado_3d,
         'categorias': categorias,
         'query': query,
-        'online': nodos_activos if nodos_activos > 0 else 1, # Respeta tus nodos
-        'vistas': trafico_total # Respeta tu tráfico
+        'online': nodos_activos if nodos_activos > 0 else 1,
+        'vistas': trafico_total 
     })
+
 
 
 
