@@ -6,7 +6,6 @@ from cloudinary.models import CloudinaryField
 # ==========================================================
 # 🛰️ DETECTOR DE ENTORNO (SISTEMA NEÓN)
 # ==========================================================
-# Si existe la variable 'RENDER' en el entorno, activamos la nube.
 IS_RENDER = 'RENDER' in os.environ
 
 # ==========================================================
@@ -25,7 +24,6 @@ class Perfil(models.Model):
     usuario = models.OneToOneField(User, on_delete=models.CASCADE, related_name='perfil')
     nombre = models.CharField(max_length=100, blank=True, null=True)
     
-    # Switch inteligente para la foto de perfil
     if IS_RENDER:
         foto_perfil = CloudinaryField('image', folder='perfiles', blank=True, null=True)
     else:
@@ -49,7 +47,7 @@ class Categoria(models.Model):
         return self.nombre
 
 # ==========================================================
-# 💎 3. PUBLICACIÓN: El núcleo del sistema
+# 💎 3. PUBLICACIÓN: El núcleo del sistema (UPGRADED)
 # ==========================================================
 class Publicacion(models.Model):
     TIPO_NEGOCIO = [
@@ -72,12 +70,23 @@ class Publicacion(models.Model):
     descripcion = models.TextField(blank=True, null=True)
     telefono = models.CharField(max_length=20, blank=True, null=True) 
     
-    # ⚡ CAMPO 'FOTO' CON SWITCH DE SEGURIDAD
+    # ⚡ FOTO PRINCIPAL
     if IS_RENDER:
         foto = CloudinaryField('image', folder='productos', blank=True, null=True)
     else:
         foto = models.ImageField(upload_to='productos/', blank=True, null=True)
     
+    # 🛰️ MÓDULO AR (REALIDAD AUMENTADA)
+    # Usamos 'raw' en Cloudinary para archivos .glb (3D)
+    if IS_RENDER:
+        modelo_3d = CloudinaryField('raw', folder='modelos_3d', blank=True, null=True)
+    else:
+        modelo_3d = models.FileField(upload_to='modelos_3d/', blank=True, null=True)
+
+    # 🔗 MÓDULO BLOCKCHAIN
+    # Para guardar el hash del Smart Contract o ID de transacción
+    contract_id = models.CharField(max_length=255, blank=True, null=True, verbose_name="ID Contrato Blockchain")
+
     tipo_negocio = models.CharField(max_length=10, choices=TIPO_NEGOCIO, blank=True, null=True)
     estado_fisico = models.CharField(max_length=10, choices=ESTADO_ITEM, blank=True, null=True)
     vendido = models.BooleanField(default=False)
@@ -92,13 +101,25 @@ class Publicacion(models.Model):
         from django.urls import reverse
         return reverse('detalle', args=[str(self.id)])
 
+    @property
+    def promedio_estrellas(self):
+        # Lógica para calcular el promedio dinámicamente
+        resenas = self.resenas.all()
+        if resenas.exists():
+            total = sum(r.puntuacion for r in resenas)
+            return round(total / resenas.count(), 1)
+        return 0.0
+
+    @property
+    def total_resenas(self):
+        return self.resenas.count()
+
 # ==========================================================
 # 🖼️ 4. GALERÍA ADICIONAL
 # ==========================================================
 class Imagen(models.Model):
     publicacion = models.ForeignKey(Publicacion, on_delete=models.CASCADE, related_name='fotos')
     
-    # Switch inteligente para la galería
     if IS_RENDER:
         imagen = CloudinaryField('image', folder='productos_galeria', null=True, blank=True)
     else:
@@ -107,28 +128,18 @@ class Imagen(models.Model):
     def __str__(self):
         return f"Imagen de {self.publicacion.titulo}"
 
-
-
 # ==========================================================
 # ⭐ 5. RESEÑAS: Sistema de Calificaciones (Otto-task)
 # ==========================================================
 class Resena(models.Model):
-    # Conectamos con tu modelo Publicacion
     publicacion = models.ForeignKey(Publicacion, on_delete=models.CASCADE, related_name='resenas')
-    # El usuario que lanza el comentario
     autor = models.ForeignKey(User, on_delete=models.CASCADE)
-    
-    # Calificación 1-5 (Para tus estrellas neón)
     puntuacion = models.IntegerField(default=5)
-    
-    # El cuadro de "Informe..."
     comentario = models.TextField(max_length=500, blank=True, null=True)
-    
     fecha_creacion = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         ordering = ['-fecha_creacion']
-        # Evitamos que un usuario spamee: una reseña por usuario por producto
         unique_together = ('publicacion', 'autor')
 
     def __str__(self):
