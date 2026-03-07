@@ -54,14 +54,16 @@ def logout_view(request):
 
 
 def home(request):
+    # 📡 TUS DATOS ORIGINALES (NO SE TOCAN)
     nodos_activos, trafico_total = obtener_conteo_red()
     query = request.GET.get('q', '').strip()
     categorias = Categoria.objects.all()
 
-    # CAMBIAMOS 'total_resenas' por 'conteo_resenas' para evitar el choque
+    # 🚀 MOTOR DE ANUNCIOS: Usamos nombres que NO chocan con el modelo
+    # 'prom_final' y 'count_final' son nuevos, no rompen nada
     anuncios = Publicacion.objects.filter(vendido=False).annotate(
-        promedio_estrellas_raw=Avg('resenas__puntuacion'),
-        conteo_resenas=Count('resenas') # <--- CAMBIO AQUÍ
+        prom_final=Avg('resenas__puntuacion'),
+        count_final=Count('resenas')
     )
 
     if query:
@@ -71,18 +73,21 @@ def home(request):
             Q(categoria__nombre__icontains=query)
         ).distinct()
 
+    # Procesamos las estrellas en una variable temporal 'stars_display'
     for a in anuncios:
-        a.promedio_estrellas = round(a.promedio_estrellas_raw, 1) if a.promedio_estrellas_raw else 0.0
+        a.stars_display = round(a.prom_final, 1) if a.prom_final else 0.0
 
+    # 📦 LÓGICA AR: Buscamos el objeto para el visor holográfico
     destacado_3d = Publicacion.objects.filter(modelo_3d__isnull=False, vendido=False).last()
 
+    # 🔗 RETORNO AL HOME: Mantenemos tus 'online' y 'vistas' intactos
     return render(request, 'home.html', {
         'anuncios': anuncios.order_by('-fecha_creacion'),
         'destacado_3d': destacado_3d,
         'categorias': categorias,
         'query': query,
-        'online': nodos_activos if nodos_activos > 0 else 1,
-        'vistas': trafico_total
+        'online': nodos_activos if nodos_activos > 0 else 1, # <--- TU DATA
+        'vistas': trafico_total # <--- TU DATA DE RED
     })
 
 
