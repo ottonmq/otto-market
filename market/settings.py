@@ -6,11 +6,6 @@ import cloudinary.uploader
 import cloudinary.api
 from pathlib import Path
 
-
-
-
-
-
 # ==========================================================
 # 🛰️ ESCÁNER DE ENTORNO Y PARCHE TERMUX (ERROR 38)
 # ==========================================================
@@ -18,7 +13,6 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 IS_TERMUX = 'com.termux' in os.environ.get('PREFIX', '')
 
 if IS_TERMUX:
-    # ELIMINAMOS EL BLOQUEO DE ARCHIVOS EN ANDROID (SOLO PARA DESARROLLO)
     try:
         from django.core.files import locks
         locks.lock = lambda f, flags: True
@@ -38,14 +32,14 @@ CSRF_TRUSTED_ORIGINS = ['https://*.render.com', 'https://otto-market.onrender.co
 # 🧩 MÓDULOS DEL SISTEMA (APPS) - EL ORDEN ES VITAL
 # ==========================================================
 INSTALLED_APPS = [
-    'cloudinary_storage', # 🟢 PRIORITY: Intercepta MEDIA antes que static
+    'cloudinary_storage', 
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'cloudinary',          # 🟢 Motor de procesamiento
+    'cloudinary',          
     'django.contrib.sites',
     'marketapp',
     'allauth',
@@ -105,20 +99,18 @@ STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
 
 # ==========================================================
-# 🛰️ CONEXIÓN MAESTRA CLOUDINARY (KEYS ACTUALIZADAS)
+# 🛰️ CONEXIÓN MAESTRA CLOUDINARY (SOPORTE AR ACTIVADO)
 # ==========================================================
 if not IS_TERMUX:
-    # 1. Motor de almacenamiento para archivos subidos
     DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
-    
-    # 2. Configuración del Storage Backend (USANDO TUS NUEVAS KEYS)
+
     CLOUDINARY_STORAGE = {
         'CLOUD_NAME': 'dmfhdilyd',
         'API_KEY': '223926243589726',
         'API_SECRET': '5J3GsVsYrr8ecpXoJKdBD-LpaQ4',
+        'RESOURCE_TYPES': ['image', 'video', 'raw'], # ⚡ PERMITE .GLB PARA AR
     }
 
-    # 3. Inicialización Global (Uso de las mismas llaves nuevas)
     cloudinary.config(
         cloud_name = "dmfhdilyd",
         api_key = "223926243589726",
@@ -126,7 +118,6 @@ if not IS_TERMUX:
         secure = True
     )
 else:
-    # Modo Local / Desarrollo
     DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
 
 MEDIA_URL = '/media/'
@@ -148,23 +139,12 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # FINAL DEL ARCHIVO - SOLICITUD DE DMFHDILYD
 SOCIALACCOUNT_LOGIN_ON_GET = True
 
-
 # ==========================================================
-# 🤖 NÚCLEO SHADOW (GEMINI AI CONFIG) - PROTEGIDO
+# 🤖 NÚCLEO SHADOW (GEMINI AI CONFIG) & TELEGRAM
 # ==========================================================
-# GitHub NO detectará la clave porque se lee del entorno de Render
 GOOGLE_API_KEY = os.environ.get('GOOGLE_API_KEY') 
-
-
-
-
-# ==========================================================
-# 🏮 PROTOCOLO DE COMUNICACIÓN TELEGRAM (NOTIFICACIONES)
-# ==========================================================
-# Se leen directamente de Render para evitar filtraciones en GitHub
 TELEGRAM_BOT_TOKEN = os.environ.get('TELEGRAM_BOT_TOKEN')
 TELEGRAM_CHAT_ID = os.environ.get('TELEGRAM_CHAT_ID')
-
 
 
 
