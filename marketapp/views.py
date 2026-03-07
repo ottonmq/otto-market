@@ -59,8 +59,7 @@ def home(request):
     query = request.GET.get('q', '').strip()
     categorias = Categoria.objects.all()
 
-    # 🚀 MOTOR DE ANUNCIOS: Usamos nombres que NO chocan con el modelo
-    # 'prom_final' y 'count_final' son nuevos, no rompen nada
+    # 🚀 MOTOR DE ANUNCIOS: 'prom_final' y 'count_final' calculan la data
     anuncios = Publicacion.objects.filter(vendido=False).annotate(
         prom_final=Avg('resenas__puntuacion'),
         count_final=Count('resenas')
@@ -73,22 +72,24 @@ def home(request):
             Q(categoria__nombre__icontains=query)
         ).distinct()
 
-    # Procesamos las estrellas en una variable temporal 'stars_display'
+    # ⚡ CONEXIÓN CRÍTICA: Cambiamos los nombres para que tu HTML los vea
     for a in anuncios:
-        a.stars_display = round(a.prom_final, 1) if a.prom_final else 0.0
+        # Ahora se llaman EXACTAMENTE como en tu home.html
+        a.stars_view = round(a.prom_final, 1) if a.prom_final else 0.0
+        a.count_view = a.count_final
 
-    # 📦 LÓGICA AR: Buscamos el objeto para el visor holográfico
+    # 📦 LÓGICA AR: Objeto para el visor holográfico
     destacado_3d = Publicacion.objects.filter(modelo_3d__isnull=False, vendido=False).last()
 
-    # 🔗 RETORNO AL HOME: Mantenemos tus 'online' y 'vistas' intactos
     return render(request, 'home.html', {
         'anuncios': anuncios.order_by('-fecha_creacion'),
         'destacado_3d': destacado_3d,
         'categorias': categorias,
         'query': query,
-        'online': nodos_activos if nodos_activos > 0 else 1, # <--- TU DATA
-        'vistas': trafico_total # <--- TU DATA DE RED
+        'online': nodos_activos if nodos_activos > 0 else 1,
+        'vistas': trafico_total
     })
+
 
 
 
