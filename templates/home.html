@@ -691,6 +691,42 @@
 </style>
 
 
+
+
+
+
+
+<script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+
+<script>
+async function conectarWallet() {
+    if (window.ethereum) {
+        try {
+            const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+            const account = accounts[0];
+            console.log("Conectado a:", account);
+            alert("SISTEMA_VINCULADO: " + account);
+            // Aquí mandaremos la dirección a Django para guardarla en el Perfil
+        } catch (error) {
+            console.error("Acceso denegado al nodo");
+        }
+    } else {
+        alert("INSTALA_METAMASK_CHUMMER");
+    }
+}
+</script>
+
+
+<button onclick="conectarWallet()" id="btn-blockchain" 
+        style="background: transparent; border: 1px solid #00f3ff; color: #00f3ff; 
+               padding: 10px 20px; font-family: 'Courier New', monospace; 
+               text-transform: uppercase; cursor: pointer; 
+               box-shadow: 0 0 10px #00f3ff; font-weight: bold;">
+    🛰️ VINCULAR_WALLET
+</button>
+
+
+
 {% endblock %}
 
 
