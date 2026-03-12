@@ -693,28 +693,36 @@
 
 
 
-
-
-
-<script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"></script>
 
 <script>
 async function conectarWallet() {
-    if (window.ethereum) {
+    // 🛡️ PROTOCOLO_EDGE_ACTIVO
+    if (typeof window.ethereum !== 'undefined') {
         try {
-            const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
-            const account = accounts[0];
-            console.log("Conectado a:", account);
-            alert("SISTEMA_VINCULADO: " + account);
-            // Aquí mandaremos la dirección a Django para guardarla en el Perfil
+            const provider = new ethers.providers.Web3Provider(window.ethereum);
+            await provider.send("eth_requestAccounts", []);
+            const signer = provider.getSigner();
+            const address = await signer.getAddress();
+            
+            // 🟢 CAMBIO ESTÉTICO NEÓN
+            const btn = document.getElementById('btn-blockchain');
+            btn.innerHTML = "🔗 NODO_VINCULADO: " + address.substring(0,6) + "...";
+            btn.style.boxShadow = "0 0 20px #39ff14";
+            btn.style.color = "#39ff14";
+            btn.style.borderColor = "#39ff14";
+            
+            console.log("ACCESO_CONCEDIDO_AL_OPERADOR:", address);
         } catch (error) {
-            console.error("Acceso denegado al nodo");
+            alert("VÍNCULO_RECHAZADO: Revisa la notificación de MetaMask en Edge");
         }
     } else {
-        alert("INSTALA_METAMASK_CHUMMER");
+        // 🚀 SI EDGE NO TIENE LA EXTENSIÓN, LANZA EL PUENTE A LA APP
+        window.location.href = "https://metamask.app.link/dapp/otto-market.onrender.com";
     }
 }
 </script>
+
 
 
 <button onclick="conectarWallet()" id="btn-blockchain" 
