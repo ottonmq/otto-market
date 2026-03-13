@@ -253,4 +253,59 @@
 </style>
 
 
+
+
+
+<div class="neon-card">
+    <div class="scanner-line"></div>
+    <h3>ASSET MONITOR: $OTTO</h3>
+    <div class="balance-display">
+        <span class="glitch" data-text="BALANCE:">BALANCE:</span>
+        <span id="token-balance">1,000,000.00</span>
+    </div>
+    <div class="status-box">
+        <span class="blink">●</span> EN LÍNEA - RED SEPOLIA
+    </div>
+</div>
+
+<style>
+.neon-card {
+    border: 2px solid #00f3ff;
+    padding: 20px;
+    background: rgba(0, 0, 0, 0.8);
+    box-shadow: 0 0 15px #00f3ff;
+    position: relative;
+    overflow: hidden;
+    font-family: 'Courier New', monospace;
+    color: #fff;
+}
+
+.scanner-line {
+    width: 100%;
+    height: 2px;
+    background: #00f3ff;
+    position: absolute;
+    top: 0;
+    animation: scan 3s linear infinite;
+    box-shadow: 0 0 10px #00f3ff;
+}
+
+@keyframes scan {
+    0% { top: 0; }
+    100% { top: 100%; }
+}
+
+.blink {
+    color: #00ff41;
+    animation: blinker 1s linear infinite;
+}
+
+@keyframes blinker {
+    50% { opacity: 0; }
+}
+</style>
+
+
+
+
 {% endblock %}
