@@ -491,39 +491,5 @@ def notificar_login(sender, request, user, **kwargs):
 
 
 
-import os
-from django.shortcuts import render
-from web3 import Web3
 
-def wallet_dashboard(request):
-    # Conexión con las variables de Render
-    rpc_url = os.environ.get('RPC_URL', 'https://ethereum-sepolia-rpc.publicnode.com')
-    contract_address = os.environ.get('CONTRACT_ADDRESS', '0x942Df567A052a2e130502027787084fCca83c0D6')
-    
-    w3 = Web3(Web3.HTTPProvider(rpc_url))
-    
-    # ABI mínimo para leer el saldo
-    abi = [
-        {
-            "constant": True,
-            "inputs": [{"name": "_owner", "type": "address"}],
-            "name": "balanceOf",
-            "outputs": [{"name": "balance", "type": "uint256"}],
-            "type": "function"
-        }
-    ]
-    
-    contract = w3.eth.contract(address=contract_address, abi=abi)
-    
-    # Supongamos que quieres ver el saldo de tu wallet principal en el dashboard
-    my_wallet = "0xcfd7725f074f93a7b330b7ec0794f670160a8609"
-    balance_raw = contract.functions.balanceOf(my_wallet).call()
-    
-    # Convertir de Wei a decimales (18)
-    balance_otto = balance_raw / 10**18
-    
-    return render(request, 'dashboard.html', {
-        'balance': "{:,.2f}".format(balance_otto),
-        'contract_address': contract_address
-    })
 
