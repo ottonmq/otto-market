@@ -308,4 +308,49 @@
 
 
 
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/web3/4.1.1/web3.min.js"></script>
+<script>
+async function connectWallet() {
+    if (window.ethereum) {
+        const web3 = new Web3(window.ethereum);
+        try {
+            // Solicitar acceso a la cuenta
+            const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+            const userWallet = accounts[0];
+            
+            const contractAddress = "{{ contract_address }}"; // Viene de Django
+            const abi = [
+                {
+                    "constant": true,
+                    "inputs": [{"name": "_owner", "type": "address"}],
+                    "name": "balanceOf",
+                    "outputs": [{"name": "balance", "type": "uint256"}],
+                    "type": "function"
+                }
+            ];
+
+            const contract = new web3.eth.Contract(abi, contractAddress);
+            const balance = await contract.methods.balanceOf(userWallet).call();
+            
+            // Convertir y mostrar en tu cuadro de neón
+            const formattedBalance = parseFloat(web3.utils.fromWei(balance, 'ether')).toLocaleString();
+            document.getElementById('token-balance').innerText = formattedBalance;
+            
+            console.log("Carga Cyberpunk Completa: " + formattedBalance + " OTTO");
+        } catch (error) {
+            console.error("Acceso denegado a la red neural.");
+        }
+    } else {
+        alert("Instala MetaMask para interactuar con Otto-task");
+    }
+}
+
+// Ejecutar al cargar la página
+window.onload = connectWallet;
+</script>
+
+
+
+
 {% endblock %}
