@@ -1,187 +1,108 @@
 {% extends "base.html" %}
 {% block content %}
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/web3/4.1.1/web3.min.js"></script>
+<script src="https://cdn.ethers.io/lib/ethers-5.2.umd.min.js"></script>
 
 <div class="neon-card">
     <div class="scanner-line"></div>
     <div class="card-header">
         <h3>ASSET MONITOR: $OTTO</h3>
-        <span class="network-badge">SEPOLIA_NETWORK_OK</span>
+        <span class="network-badge" id="net-status">BUSCANDO_RED...</span>
     </div>
-    
+
     <div class="balance-display">
-        <span class="glitch-text">BALANCE ACTUAL:</span>
+        <span class="glitch-text">BALANCE EN SEPOLIA:</span>
         <div class="number-container">
             <span id="token-balance">0.00</span> <small>OTTO</small>
         </div>
     </div>
 
     <div class="status-box">
-        <span class="blink">●</span> SISTEMA_EN_LINEA
+        <span id="status-dot" class="blink">●</span> <span id="status-text">SISTEMA_INICIANDO</span>
     </div>
 
     <div class="action-grid">
-        <button onclick="connectWallet()" class="cyber-btn">
-            <span class="btn-icon">⚡</span> CONECTAR_METAMASK
+        <button onclick="conectarYEscanear()" class="cyber-btn" id="btn-main">
+            <span class="btn-icon">⚡</span> VINCULAR_NODO
         </button>
-        <button onclick="viewOnEtherscan()" class="cyber-btn secondary">
-            <span class="btn-icon">🔍</span> VER_CONTRATO
+        <button onclick="irAEtherscan()" class="cyber-btn secondary">
+            <span class="btn-icon">🔍</span> EXPLORADOR
         </button>
     </div>
 </div>
 
 <style>
-:root {
-    --neon-blue: #00f3ff;
-    --neon-green: #00ff41;
-    --dark-bg: rgba(0, 0, 0, 0.9);
-}
-
-.neon-card {
-    border: 2px solid var(--neon-blue);
-    padding: 25px;
-    background: var(--dark-bg);
-    box-shadow: 0 0 20px rgba(0, 243, 255, 0.3), inset 0 0 10px rgba(0, 243, 255, 0.2);
-    position: relative;
-    overflow: hidden;
-    font-family: 'Courier New', monospace;
-    color: #fff;
-    max-width: 450px;
-    margin: 20px auto;
-}
-
-.scanner-line {
-    width: 100%;
-    height: 3px;
-    background: var(--neon-blue);
-    position: absolute;
-    top: 0;
-    left: 0;
-    animation: scan 4s linear infinite;
-    box-shadow: 0 0 15px var(--neon-blue);
-    z-index: 2;
-}
-
-@keyframes scan {
-    0% { top: 0; }
-    50% { top: 100%; }
-    100% { top: 0; }
-}
-
-.balance-display {
-    margin: 20px 0;
-    padding: 15px;
-    border-left: 4px solid var(--neon-green);
-    background: rgba(0, 255, 65, 0.05);
-}
-
-#token-balance {
-    font-size: 2.2em;
-    font-weight: bold;
-    color: var(--neon-green);
-    text-shadow: 0 0 10px var(--neon-green);
-}
-
-.action-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
-    margin-top: 20px;
-}
-
-.cyber-btn {
-    background: transparent;
-    border: 1px solid var(--neon-blue);
-    color: var(--neon-blue);
-    padding: 10px;
-    cursor: pointer;
-    font-size: 0.8em;
-    font-family: 'Courier New', monospace;
-    transition: 0.3s;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.cyber-btn:hover {
-    background: var(--neon-blue);
-    color: #000;
-    box-shadow: 0 0 15px var(--neon-blue);
-}
-
-.cyber-btn.secondary {
-    border-color: #888;
-    color: #888;
-}
-
-.cyber-btn.secondary:hover {
-    border-color: #fff;
-    color: #fff;
-    box-shadow: 0 0 10px #fff;
-}
-
-.blink {
-    color: var(--neon-green);
-    animation: blinker 1.5s linear infinite;
-}
-
-@keyframes blinker { 50% { opacity: 0; } }
+:root { --n-blue: #00f3ff; --n-green: #00ff41; --n-red: #ff003c; }
+.neon-card { border: 2px solid var(--n-blue); padding: 25px; background: rgba(0,0,0,0.9); box-shadow: 0 0 20px rgba(0,243,255,0.3); position: relative; overflow: hidden; font-family: 'Courier New', monospace; color: #fff; max-width: 450px; margin: 20px auto; }
+.scanner-line { width: 100%; height: 3px; background: var(--n-blue); position: absolute; top: 0; left: 0; animation: scan 4s linear infinite; box-shadow: 0 0 15px var(--n-blue); }
+@keyframes scan { 0%, 100% { top: 0; } 50% { top: 100%; } }
+.balance-display { margin: 20px 0; padding: 15px; border-left: 4px solid var(--n-green); background: rgba(0,255,65,0.05); }
+#token-balance { font-size: 2.2em; font-weight: bold; color: var(--n-green); text-shadow: 0 0 10px var(--n-green); }
+.action-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 20px; }
+.cyber-btn { background: transparent; border: 1px solid var(--n-blue); color: var(--n-blue); padding: 10px; cursor: pointer; font-size: 0.8em; font-family: 'Courier New', monospace; transition: 0.3s; }
+.cyber-btn:hover { background: var(--n-blue); color: #000; box-shadow: 0 0 15px var(--n-blue); }
+.cyber-btn.secondary { border-color: #555; color: #555; }
+.blink { animation: b 1.5s infinite; }
+@keyframes b { 50% { opacity: 0; } }
 </style>
 
-<script src="https://cdn.ethers.io/lib/ethers-5.2.umd.min.js"></script>
 <script>
-const CONTRACT_ADDRESS = "{{ contract_address }}"; // Tu contrato OTTO
-const RPC_URL = "https://ethereum-sepolia-rpc.publicnode.com";
-const ABI = ["function balanceOf(address) view returns (uint256)"];
+// DATOS REALES DE DMFHDILYD
+const INFO = {
+    CONTRATO: "0x942Df567A052a2e130502027787084fCca83c0D6",
+    ADMIN: "0x902b3f383749e6dcbf09fe21791810835c47a395d72f669f39c45d193520e5df",
+    RPC: "https://ethereum-sepolia-rpc.publicnode.com",
+    ABI: ["function balanceOf(address) view returns (uint256)", "function transfer(address to, uint256 amount) returns (bool)"]
+};
 
-// 1. Cargar saldo de forma autónoma (Sin pedir permiso)
-async function autoScan() {
+// 1. ESCÁNER AUTOMÁTICO AL CARGAR
+async function autoUpdate() {
     try {
-        const provider = new ethers.providers.JsonRpcProvider(RPC_URL);
-        const contract = new ethers.Contract(CONTRACT_ADDRESS, ABI, provider);
-        // Billetera que quieres mostrar por defecto
-        const myWallet = "0x902b3f383749e6dcbf09fe21791810835c47a395d72f669f39c45d193520e5df";
+        const provider = new ethers.providers.JsonRpcProvider(INFO.RPC);
+        const contract = new ethers.Contract(INFO.CONTRATO, INFO.ABI, provider);
+        const balance = await contract.balanceOf(INFO.ADMIN);
         
-        const balance = await contract.balanceOf(myWallet);
-        updateDisplay(balance);
+        document.getElementById('token-balance').innerText = parseFloat(ethers.utils.formatUnits(balance, 18)).toLocaleString();
+        document.getElementById('net-status').innerText = "SEPOLIA_VINCULADA";
+        document.getElementById('status-text').innerText = "DATOS_EN_TIEMPO_REAL";
     } catch (e) {
-        console.error("Fallo de escaneo automático", e);
+        console.log("Error de red, reconectando...");
     }
 }
 
-// 2. Conectar MetaMask (Cuando el usuario quiera ver SU saldo)
-async function connectWallet() {
-    if (window.ethereum) {
-        try {
-            const provider = new ethers.providers.Web3Provider(window.ethereum);
-            await provider.send("eth_requestAccounts", []);
-            const signer = provider.getSigner();
-            const userAddress = await signer.getAddress();
-            const contract = new ethers.Contract(CONTRACT_ADDRESS, ABI, signer);
-            
-            const balance = await contract.balanceOf(userAddress);
-            updateDisplay(balance);
-            alert("Enlace Neural Establecido con: " + userAddress);
-        } catch (e) {
-            console.error("Usuario rechazó conexión");
-        }
-    } else {
-        alert("MetaMask no detectado. Instala el módulo para operar.");
+// 2. CONECTAR WALLET Y HABILITAR OPERACIONES
+async function conectarYEscanear() {
+    if (!window.ethereum) {
+        window.location.href = "https://metamask.app.link/dapp/otto-market.onrender.com";
+        return;
+    }
+    
+    try {
+        const provider = new ethers.providers.Web3Provider(window.ethereum);
+        await provider.send("eth_requestAccounts", []);
+        const signer = provider.getSigner();
+        const address = await signer.getAddress();
+        
+        const contract = new ethers.Contract(INFO.CONTRATO, INFO.ABI, signer);
+        const balance = await contract.balanceOf(address);
+        
+        document.getElementById('token-balance').innerText = parseFloat(ethers.utils.formatUnits(balance, 18)).toLocaleString();
+        document.getElementById('btn-main').innerText = "🛰️ NODO: " + address.substring(0,6);
+        document.getElementById('status-text').innerText = "ACCESO_CONCEDIDO";
+        document.getElementById('status-dot').style.color = "var(--n-green)";
+        
+        alert("Enlace Neural Establecido con Sepolia");
+    } catch (e) {
+        alert("Vínculo denegado.");
     }
 }
 
-function updateDisplay(balance) {
-    const formatted = parseFloat(ethers.utils.formatUnits(balance, 18)).toLocaleString();
-    document.getElementById('token-balance').innerText = formatted;
+function irAEtherscan() {
+    window.open(`https://sepolia.etherscan.io/address/${INFO.CONTRATO}`, '_blank');
 }
 
-function viewOnEtherscan() {
-    window.open(`https://sepolia.etherscan.io/address/${CONTRACT_ADDRESS}`, '_blank');
-}
-
-// Iniciar al cargar
-window.onload = autoScan;
+// Iniciar proceso
+window.onload = autoUpdate;
 </script>
 
 
