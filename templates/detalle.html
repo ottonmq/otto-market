@@ -158,97 +158,111 @@
 
 
 
-<div class="checkout-actions" >
-    <a href="https://s.wompi.sv/1078393UDN" class="tech-particles-btn">
-        <div class="particle-container">
-            <span class="p-1"></span><span class="p-2"></span><span class="p-3"></span>
+
+
+
+
+
+{% if producto.vendedor.username == 'ottonmq' %}
+<div class="otto-exclusive-pago">
+    <a href="https://s.wompi.sv/1078393UDN" class="tech-particles-button">
+        <div class="particle-system">
+            <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+            <span class="dot"></span><span class="dot"></span>
         </div>
-        <div class="btn-content">
-            <span class="glitch-text" data-text="COMPRAR_AHORA">PAGAR TARJETA / BITCOIN</span>
+        <div class="btn-inner-content">
+            <span class="icon">⚡</span> 
+            <span class="text">PAGAR TARJETA / BITCOIN</span>
         </div>
-        <div class="scanner-line"></div>
+        <div class="laser-line"></div>
     </a>
 </div>
+{% endif %}
 
 <style>
-.tech-particles-btn {
-    display: block;
+/* CSS CAPSULADO: No afecta a otros elementos de la web */
+.otto-exclusive-pago {
     width: 100%;
-    height: 70px;
-    background: #000;
-    border: 2px solid #39ff14;
-    position: relative;
-    overflow: hidden;
-    text-decoration: none;
-    box-sizing: border-box;
-    box-shadow: 0 0 20px rgba(57, 255, 20, 0.2);
-    transition: 0.3s;
+    margin-top: 20px;
+    padding: 5px 0;
+    clear: both;
 }
 
-.btn-content {
-    position: absolute;
-    width: 100%;
-    height: 100%;
+.tech-particles-button {
     display: flex;
     align-items: center;
     justify-content: center;
-    z-index: 5;
+    width: 100%;
+    height: 65px;
+    background: #000;
+    border: 2px solid #39ff14;
+    text-decoration: none;
+    position: relative;
+    overflow: hidden;
+    box-sizing: border-box;
+    box-shadow: 0 0 15px rgba(57, 255, 20, 0.3);
+    transition: 0.3s all;
+}
+
+.btn-inner-content {
+    z-index: 10;
     color: #39ff14;
     font-family: 'Courier New', monospace;
     font-weight: 900;
     font-size: 1.1rem;
-    letter-spacing: 2px;
+    letter-spacing: 1px;
+    display: flex;
+    gap: 10px;
 }
 
-/* Animación de Partículas Tech */
-.particle-container span {
+/* Sistema de partículas tech */
+.particle-system .dot {
     position: absolute;
+    width: 3px;
+    height: 3px;
     background: #39ff14;
     border-radius: 50%;
-    filter: blur(1px);
-    opacity: 0.6;
+    opacity: 0;
+    animation: tech-float 3s infinite linear;
 }
 
-.p-1 { width: 4px; height: 4px; top: 20%; left: 10%; animation: move-p 3s infinite; }
-.p-2 { width: 6px; height: 6px; top: 60%; left: 80%; animation: move-p 4s infinite reverse; }
-.p-3 { width: 3px; height: 3px; top: 40%; left: 50%; animation: move-p 5s infinite; }
+.dot:nth-child(1) { left: 10%; animation-delay: 0s; }
+.dot:nth-child(2) { left: 30%; animation-delay: 0.5s; }
+.dot:nth-child(3) { left: 50%; animation-delay: 1.2s; }
+.dot:nth-child(4) { left: 70%; animation-delay: 1.8s; }
+.dot:nth-child(5) { left: 90%; animation-delay: 2.3s; }
 
-@keyframes move-p {
-    0% { transform: translate(0, 0) scale(1); opacity: 0; }
-    50% { transform: translate(20px, -20px) scale(1.5); opacity: 0.8; }
-    100% { transform: translate(-10px, 10px) scale(1); opacity: 0; }
+@keyframes tech-float {
+    0% { transform: translateY(20px); opacity: 0; }
+    50% { opacity: 0.8; }
+    100% { transform: translateY(-40px); opacity: 0; }
 }
 
 /* Línea de escaneo láser */
-.scanner-line {
+.laser-line {
     position: absolute;
     width: 100%;
-    height: 4px;
-    background: rgba(57, 255, 20, 0.5);
-    box-shadow: 0 0 15px #39ff14;
+    height: 1px;
+    background: #39ff14;
+    box-shadow: 0 0 10px #39ff14, 0 0 20px #39ff14;
     top: 0;
-    animation: laser-scan 2.5s infinite linear;
-    z-index: 3;
+    animation: laser-move 2.5s infinite ease-in-out;
 }
 
-@keyframes laser-scan {
+@keyframes laser-move {
     0% { top: 0; }
     100% { top: 100%; }
 }
 
-/* Interacción */
-.tech-particles-btn:hover {
-    box-shadow: 0 0 40px rgba(57, 255, 20, 0.6);
+/* Interacción Premium */
+.tech-particles-button:hover {
     background: rgba(57, 255, 20, 0.05);
+    box-shadow: 0 0 35px rgba(57, 255, 20, 0.5);
+    transform: translateY(-2px);
 }
 
-.tech-particles-btn:hover .btn-content {
-    text-shadow: 0 0 10px #39ff14;
-    transform: scale(1.05);
-}
-
-.tech-particles-btn:active {
-    transform: scale(0.97);
+.tech-particles-button:active {
+    transform: scale(0.98);
 }
 </style>
 
@@ -259,7 +273,18 @@
 
 
 
-<div class="otto-static-btn" onclick="window.history.back()">
+
+
+
+    
+
+
+
+
+
+
+
+s="otto-static-btn" onclick="window.history.back()">
     <div class="particles-box">
         <span class="p"></span><span class="p"></span><span class="p"></span><span class="p"></span><span class="p"></span>
     </div>
