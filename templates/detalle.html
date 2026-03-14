@@ -1,3 +1,5 @@
+
+
 {% extends "base.html" %}
 
 {% block content %}
@@ -25,30 +27,33 @@
 
                 <h1 class="display-6 fw-bold text-white mb-2">{{ anuncio.titulo|upper }}</h1>
 
-                <div class="specs-grid mb-4" style="font-family: monospace; border-top: 1px solid #222; padding-top: 15px;">
+                <div class="specs-grid mb-4" style="font-family: monospace; border-top: 1px solid #222; padding-top: 15px;   ">
                     <div class="d-flex justify-content-between py-1">
-                        <span class="text-info" style="color: #00f2ff !important;">CATEGORÍA:</span>
-                        <span style="color: #fff;">{{ anuncio.categoria|upper }}</span>
+                        <span class="text-info">CATEGORÍA:</span>
+                        <span class="text-gray">{{ anuncio.categoria|upper }}</span>
                     </div>
                     <div class="d-flex justify-content-between py-1">
-                        <span class="text-info" style="color: #00f2ff !important;">MARCA :</span>
-                        <span style="color: #fff;">{{ anuncio.marca|upper|default:"--" }}</span>
+                        <span class="text-info">MARCA :</span>
+                        <span class="text-gray">{{ anuncio.marca|upper|default:"--" }} </span>
                     </div>
-                    <div class="d-flex justify-content-between py-1">
-                        <span class="text-info" style="color: #00f2ff !important;">MODELO :</span>
-                        <span style="color: #fff;">{{ anuncio.modelo|upper|default:"--" }}</span>
+
+                                <div class="d-flex justify-content-between py-1">
+                        <span class="text-info">MODELO :</span>
+                        <span class="text-gray">{{ anuncio.modelo|upper|default:"--" }} </span>
                     </div>        
+
+
                     <div class="d-flex justify-content-between py-1">
-                        <span class="text-info" style="color: #00f2ff !important;">ESTADO_FÍSICO:</span>
-                        <span style="color: #fff;">{{ anuncio.get_estado_fisico_display|upper|default:"N/A" }}</span>
+                        <span class="text-info">ESTADO_FÍSICO:</span>
+                        <span class="text-gray">{{ anuncio.get_estado_fisico_display|upper|default:"N/A" }}</span>
                     </div>
                     <div class="d-flex justify-content-between py-1">
-                        <span class="text-info" style="color: #00f2ff !important;">MODALIDAD:</span>
-                        <span style="color: #fff;">{{ anuncio.get_tipo_negocio_display|upper|default:"N/A" }}</span>
+                        <span class="text-info">MODALIDAD:</span>
+                        <span class="text-gray">{{ anuncio.get_tipo_negocio_display|upper|default:"N/A" }}</span>
                     </div>
                 </div>
 
-                <div class="price-badge-large mb-4" style="background: black; color: #fff; padding: 15px; border-radius: 10px; display: block; font-size: 20px; font-weight: 900; letter-spacing: 1px; text-align: center; box-shadow: 0 0 15px rgba(0, 242, 255, 0.3); border: 1px solid #1a1a1a;">
+                <div class="price-badge-large mb-4" style="background: black; color: #999; padding: 15px; border-radius: 10px; display: block; font-size: 16px; font-weight: 900; letter-spacing: -1px; text-align: center; box-shadow: 0 0 15px rgba(0, 242, 255, 0.3);">
                     {% if anuncio.precio %}
                         $ {{ anuncio.precio }}
                     {% else %}
@@ -57,58 +62,84 @@
                 </div>
 
                 <div class="description-box mb-4" style="border-top: 1px solid #222; padding-top: 20px;">
-                    <span class="text-info" style="color: #00f2ff !important; font-family: monospace;">DESCRICION:</span>
+
+                    <span class="text-info">DESCRICION:</span>
                     <p style="color: #ccc; line-height: 1.6; white-space: pre-wrap;">{{ anuncio.descripcion }}</p>
                 </div>
 
-                <div class="seller-card-mini mb-4 d-flex align-items-center p-3" style="background: #111; border-radius: 15px; border: 1px solid #333; position: relative;">
-                    <div class="mini-avatar me-3">
-                        {% if anuncio.vendedor.perfil.foto_perfil %}
-                            <img src="{{ anuncio.vendedor.perfil.foto_perfil.url }}" style="width: 70px; height: 70px; border-radius: 50%; object-fit: cover; border: 2px solid #00f2ff; box-shadow: 0 0 10px rgba(0, 242, 255, 0.5);">
-                        {% else %}
-                            <div style="width: 70px; height: 70px; background: #00f2ff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; color: #000; font-size: 25px;">
-                                {{ anuncio.vendedor.username|slice:":1"|upper }}
-                            </div>
-                        {% endif %}
-                    </div>
-                    <div style="flex: 1;">
-                        <div style="color: #00ff41; font-weight: bold; font-size: 12px; letter-spacing: 1px;">- VENDEDOR -</div>
-                        <div style="color: #fff; font-weight: bold; font-size: 18px;">{{ anuncio.vendedor.username|upper }}</div>
-                        <div style="color: #00f2ff; font-family: monospace; font-size: 12px;">
-                             {{ anuncio.vendedor.perfil.direccion|upper|default:"SANTA ANA, ES" }}
-                        </div>
-                        <div style="color: #eee; font-family: monospace; font-size: 11px; font-weight: bold;">
-                             {{ anuncio.vendedor.perfil.telefono|default:"SIN_TEL" }}
-                        </div>
-                    </div>
-                </div>
-
-                <div class="d-grid gap-3">
-                    <a href="https://wa.me/{{ anuncio.vendedor.perfil.telefono|cut:' ' }}?text=Me%20interesa:%20{{ anuncio.titulo }}" 
-                       target="_blank" 
-                       class="action-button" 
-                       onclick="showOttoNotification('CONTACTANDO VENDEDOR...', 'info')"
-                       style="display: block; width: 100%; background: #0a0a0a; color: #00ff41; padding: 18px 0; text-align: center; text-decoration: none; font-weight: 900; font-family: monospace; border: 1px solid #00ff41; border-radius: 8px; box-shadow: 0 4px 0 #008f25, 0 0 20px rgba(0, 255, 65, 0.4); text-transform: uppercase; letter-spacing: 2px; cursor: pointer;">
-                         CONTACTAR_VENDEDOR 
-                    </a>
-
-                    {% if anuncio.vendedor.username == 'ottonmq' %}
-                    <div style="width: 100%;">
-                        <div style="color: #39ff14; font-family: monospace; font-size: 11px; text-align: center; margin-bottom: 8px;">
-                            > INGRESE ${{ anuncio.precio }} EN LA PASARELA
-                        </div>
-                        <a href="https://s.wompi.sv/1078393UDN" 
-                           class="buy-button-premium"
-                           style="display: flex; align-items: center; justify-content: center; width: 100%; height: 75px; background: #000; color: #39ff14; border: 2px solid #39ff14; text-decoration: none; font-family: monospace; font-weight: 900; font-size: 1.1rem; border-radius: 10px; box-shadow: 0 0 15px rgba(57, 255, 20, 0.3); transition: 0.3s; box-sizing: border-box;">
-                            ⚡ PAGAR TARJETA / BITCOIN
-                        </a>
-                    </div>
-                    {% endif %}
-                </div>
+<div class="seller-card-mini mb-5 d-flex align-items-center p-4" style="background: #111; border-radius: 15px; border: 1px solid #333; position: relative; min-height: 100px;">
+    <div class="mini-avatar me-3">
+        {% if anuncio.vendedor.perfil.foto_perfil %}
+            <img src="{{ anuncio.vendedor.perfil.foto_perfil.url }}" style="width: 70px; height: 70px; border-radius: 50%; object-fit: cover; border: 2px solid #00f2ff; box-shadow: 0 0 10px rgba(0, 242, 255, 0.5);">
+        {% else %}
+            <div style="width: 70px; height: 70px; background: #00f2ff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; color: #000; font-size: 25px;">
+                {{ anuncio.vendedor.username|slice:":1"|upper }}
             </div>
+        {% endif %}
+    </div>
+
+
+
+
+     <div style="flex: 1;">
+        <div class="text-green fw-bold" style="letter-spacing: 1px; font-size: 1
+22px;">-VENDEDOR-</div>
+
+    <div style="flex: 1;">
+        <div class="text-white fw-bold" style="letter-spacing: 1px; font-size: 2
+18px;">{{ anuncio.vendedor.username|upper }}</div>
+
+          <div class="text-info" style="font-family: monospace; font-size: 12px;">
+            <i class="bi bi-person-circle"></i>
+             {{ anuncio.vendedor.perfil.nombre|upper|default:"" }}
         </div>
+
+
+
+        <div class="text-info" style="font-family: monospace; font-size: 12px;">
+            <i class="bi bi-geo-alt"></i> {{ anuncio.vendedor.perfil.direccion|upper|default:"UBICACIÓN_DESCONOCIDA" }}
+        </div>
+
+        <div style="color: #EEEEEE !important; font-family: monospace; font-size: 12px; font-weight: bold; margin-top: 2px;">
+            <i class="bi bi-envelope"></i> {{ anuncio.vendedor.email|upper|default:"SIN_EMAIL" }}
+        </div>
+<div style="color: #EEEEEE !important; font-family: monospace; font-size: 12px; font-weight: bold; margin-top: 2px;">
+    <i class="bi bi-telephone"></i> {{ anuncio.vendedor.perfil.telefono|upper|default:"SIN_CEL" }}
+</div>
+
+
+
     </div>
 </div>
+
+
+                <div class="d-grid">
+    <a href="https://wa.me/{{ anuncio.telefono|default:anuncio.vendedor.perfil.telefono|cut:' ' }}?text=Saludos%20Otto-market!%20Me%20interesa%20el%20producto:%20{{ anuncio.titulo }}" 
+       target="_blank" 
+       class="action-button" 
+       onclick="showOttoNotification('CONTACTANDO VENDEDOR...', 'info')"
+       style="
+        display: block; 
+        width: 100%; 
+        background: #0a0a0a; 
+        color: #00ff41; 
+        padding: 18px 0; 
+        text-align: center; 
+        text-decoration: none; 
+        font-weight: 900; 
+        font-family: monospace;
+        border: 1px solid #00ff41; 
+        border-radius: 8px; 
+        box-shadow: 0 4px 0 #008f25, 0 0 20px rgba(0, 255, 65, 0.4);
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        cursor: pointer;
+        -webkit-tap-highlight-color: transparent;
+       ">
+         CONTACTAR_VENDEDOR 
+    </a>
+</div>
+
 
 <style>
     @keyframes scan { 0% { top: -100%; } 100% { top: 100%; } }
@@ -116,12 +147,6 @@
         position: absolute; width: 100%; height: 5px; background: rgba(0, 242, 255, 0.3);
         top: 0; left: 0; animation: scan 4s linear infinite; box-shadow: 0 0 15px #00f2ff;
     }
-    .buy-button-premium:hover {
-        background: #39ff14 !important;
-        color: #000 !important;
-        box-shadow: 0 0 35px #39ff14 !important;
-    }
-    .container { padding-bottom: 120px !important; }
 </style>
 
 <script>
@@ -138,6 +163,31 @@
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 <div style="margin-bottom: 150px; display: block; width: 100%; height: 1px;"></div>
 
 <style>
@@ -147,8 +197,8 @@
     }
 </style>
 
-{% endblock %}
 
+{% endblock %}
 
 
 
