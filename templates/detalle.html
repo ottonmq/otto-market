@@ -75,8 +75,15 @@
             </div>
         {% endif %}
     </div>
+
+
+
+
+     <div style="flex: 1;">
+        <div class="text-green fw-bold" style="letter-spacing: 1px; font-size: 18px;">-VENDEDOR-</div>
+
     <div style="flex: 1;">
-        <div class="text-white fw-bold" style="letter-spacing: 1px; font-size: 18px;">{{ anuncio.vendedor.username|upper }}</div>
+        <div class="text-white fw-bold" style="letter-spacing: 1px; font-size: 20px;">{{ anuncio.vendedor.username|upper }}</div>
         
           <div class="text-info" style="font-family: monospace; font-size: 12px;">
             ​<i class="bi bi-person-circle"></i>
@@ -145,6 +152,108 @@
         }
     });
 </script>
+
+
+
+
+<div class="checkout-actions" style="width: 100%; margin-top: 25px;">
+    <a href="https://s.wompi.sv/1078393UDN" class="tech-particles-btn">
+        <div class="particle-container">
+            <span class="p-1"></span><span class="p-2"></span><span class="p-3"></span>
+        </div>
+        <div class="btn-content">
+            <span class="glitch-text" data-text="COMPRAR_AHORA">PAGAR TARJETA / BITCOIN</span>
+        </div>
+        <div class="scanner-line"></div>
+    </a>
+</div>
+
+<style>
+.tech-particles-btn {
+    display: block;
+    width: 100%;
+    height: 70px;
+    background: #000;
+    border: 2px solid #39ff14;
+    position: relative;
+    overflow: hidden;
+    text-decoration: none;
+    box-sizing: border-box;
+    box-shadow: 0 0 20px rgba(57, 255, 20, 0.2);
+    transition: 0.3s;
+}
+
+.btn-content {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 5;
+    color: #39ff14;
+    font-family: 'Courier New', monospace;
+    font-weight: 900;
+    font-size: 1.1rem;
+    letter-spacing: 2px;
+}
+
+/* Animación de Partículas Tech */
+.particle-container span {
+    position: absolute;
+    background: #39ff14;
+    border-radius: 50%;
+    filter: blur(1px);
+    opacity: 0.6;
+}
+
+.p-1 { width: 4px; height: 4px; top: 20%; left: 10%; animation: move-p 3s infinite; }
+.p-2 { width: 6px; height: 6px; top: 60%; left: 80%; animation: move-p 4s infinite reverse; }
+.p-3 { width: 3px; height: 3px; top: 40%; left: 50%; animation: move-p 5s infinite; }
+
+@keyframes move-p {
+    0% { transform: translate(0, 0) scale(1); opacity: 0; }
+    50% { transform: translate(20px, -20px) scale(1.5); opacity: 0.8; }
+    100% { transform: translate(-10px, 10px) scale(1); opacity: 0; }
+}
+
+/* Línea de escaneo láser */
+.scanner-line {
+    position: absolute;
+    width: 100%;
+    height: 4px;
+    background: rgba(57, 255, 20, 0.5);
+    box-shadow: 0 0 15px #39ff14;
+    top: 0;
+    animation: laser-scan 2.5s infinite linear;
+    z-index: 3;
+}
+
+@keyframes laser-scan {
+    0% { top: 0; }
+    100% { top: 100%; }
+}
+
+/* Interacción */
+.tech-particles-btn:hover {
+    box-shadow: 0 0 40px rgba(57, 255, 20, 0.6);
+    background: rgba(57, 255, 20, 0.05);
+}
+
+.tech-particles-btn:hover .btn-content {
+    text-shadow: 0 0 10px #39ff14;
+    transform: scale(1.05);
+}
+
+.tech-particles-btn:active {
+    transform: scale(0.97);
+}
+</style>
+
+
+
+
+
 
 
 
