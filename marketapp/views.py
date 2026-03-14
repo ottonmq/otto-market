@@ -484,6 +484,8 @@ def notificar_login(sender, request, user, **kwargs):
 
 
 
+def pago_exitoso(request):
+    return render(request, 'pago_exitoso.html')
 
 
 
