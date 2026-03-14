@@ -33,4 +33,9 @@ urlpatterns = [
     
     path('publicacion/<int:pk>/opiniones/', views.ver_opiniones, name='ver_opiniones')
 
+    path('pago-confirmado/', views.pago_exitoso, name='pago_exitoso'),
+
+
+
+
 ]
