@@ -21,8 +21,6 @@ google-genai==0.3.0
 google-generativeai==0.8.3
 django-cors-headers
 python-dotenv
-auth0-python
-requests
-authlib
+
 
 
